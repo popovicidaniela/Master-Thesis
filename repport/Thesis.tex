@@ -1,0 +1,41 @@
+\input{preamble_ida14}											% Preamble 
+\raggedbottom													% LaTeX "straekker" ikke teksten
+
+%\includeonly{file1,file2}										% Inkluder kun specifikke filer 
+
+\begin{document}												% Starter
+\frontmatter													% Forindhold - nummereres med romertal
+%\include{Chapters/Forside/frontpage}
+%\include{Chapters/_Resume}
+
+%%%% Indholdsfortegnelse (TOC) %%%%
+\tableofcontents*												%Indholdsfortegnelsen (kaldet ToC) 
+
+
+\mainmatter														% Hovedindhold - nummereres fra side 1
+\include{Chapters/Project_definition/_Project_definition}
+
+
+
+%\include{Kapitler/Referencer}
+
+
+
+%%%% Kilder %%%%
+\begingroup
+\raggedright
+%\bibliography{bibtex/Referencer}							
+% Litteraturlisten inkluderes
+\endgroup
+
+%%%% Fixme-listen %%%%
+\newpage														% Ny side til Fixme-listen
+%\listoffixmes													% Fixme-listen - fjernes til sidst i projektet med "%"
+
+%%%% Appendiks %%%%
+\appendix														% Appendiks/bilag start - giver chapter bogstaver i stedet for tal
+\clearforchapter												% Sikrer at pagestylen aktiveres paa den rigtige side
+\phantomsection													% Kunstigt afsnit, som hyperlinks kan 'holde fast i'
+\pdfbookmark[0]{Appendiks}{appendiks}							% Tildeler en klikbar bookmark til den endelige PDF
+
+\end{document}													% Slutter dokumentet - obligatorisk
