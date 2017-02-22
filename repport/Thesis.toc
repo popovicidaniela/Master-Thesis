@@ -1,5 +1,0 @@
-\changetocdepth {3}
-\select@language {danish}
-\contentsline {chapter}{\chapternumberline {1}Project Definition}{1}{chapter.1}
-\contentsline {chapter}{\chapternumberline {2}Theory}{2}{chapter.2}
-\contentsline {section}{\numberline {2.1}CNN}{2}{section.2.1}
