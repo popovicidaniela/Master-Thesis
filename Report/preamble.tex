@@ -1,0 +1,269 @@
+
+\documentclass[a4paper,11pt,fleqn,dvipsnames,oneside,openright]{memoir} 	% Openright open chapters on right page (openany both pages)
+
+% english setup
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+
+% Figurs
+\usepackage{float}
+\usepackage{graphicx}
+%\usepackage{color}
+
+% define colors 
+%\definecolor{lightgray}{gray}{0.75}
+
+
+\usepackage{transparent}
+\graphicspath{{./figures/}}		% search in this path, so you dont need to write the path to every figure
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{epstopdf}
+\captionsetup[figure]{labelfont={bf,small,sc},textfont={it,small}}			% figuretext and label, format
+\captionsetup[subfloat]{labelfont={bf,small},textfont={it,small}}			% subfigurtext and label, format
+\captionsetup[table]{labelfont={bf,small,sc},textfont={it,small}}	
+%\usepackage[table,xcdraw]{xcolor}
+
+% Matematik 
+\usepackage{amsmath}
+\numberwithin{equation}{chapter}	% number of equations after chapters
+\usepackage{amssymb,amsthm,bm}
+\usepackage{mathtools}				% adjustments to amsmath og fx white space ved summer, limits osv.
+%\usepackage[]{algorithm2e}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+\usepackage{rotating}
+\usepackage{multirow}
+\usepackage{booktabs}
+\newcommand{\pluseq}{\mathrel{+}=}
+
+
+% physic and natation 
+\usepackage{xspace}					% correct spacing after fx own makroer
+\usepackage{xparse}					% improve \new­com­mand
+\usepackage{physics}				% Gives a lot of useful commands
+\usepackage{microtype}				% Makes small, good chages in text
+\usepackage{textcomp}				% makes microtype og SIunitx compatible
+\usepackage{siunitx} 				% to use of  units and numbers
+\sisetup{range-phrase={\text{ to }},		% Sets between numbers in SIrange
+	list-final-separator={\text{ and }},	% between last number in SIlist
+	list-pair-separator={\text{ and }},		% betweem numbers in SIlist
+	detect-all,						% uses "current font" dvs. fx slanted in figurtext
+	separate-uncertainty=true,		% +/- insecure (1) eller brackets (0)
+	group-digits=false}				% dont write numbers in groups of tree (0)
+\sisetup{exponent-product = \cdot}
+\DeclareMathOperator*{\argmax}{arg\,max}  % in your preamble
+\DeclareMathOperator*{\argmin}{arg\,min}  % in your preamble 
+
+% Tabels
+\usepackage{tabularx}								% Tabels
+\usepackage{booktabs}
+
+% Code & APPENDIX
+\usepackage[draft,english,footnote,nomargin]{fixme} % make notes to changes
+\usepackage{listings}								% packages to include code
+\usepackage{color}
+%\definecolor{dkgreen}{rgb}{0,0.6,0}
+%\definecolor{gray}{rgb}{0.5,0.5,0.5}
+%\definecolor{mauve}{rgb}{0.58,0,0.82}
+%\lstset{frame=tb,		
+%	language=Matlab,
+%	aboveskip=3mm,
+%	belowskip=3mm,
+%	showstringspaces=false,
+%	columns=flexible,
+%	basicstyle={\small\ttfamily},
+%	numbers=left,
+%	numberstyle=\tiny\color{gray},
+%	keywordstyle=\color{blue},
+%	commentstyle=\color{dkgreen},
+%	stringstyle=\color{mauve},
+%	breaklines=true,
+%	breakatwhitespace=true
+%	tabsize=3
+%}
+%\usepackage[numbered]{mcode}								% alternativ setup of matlab-code
+
+\definecolor{ggplotGreen}{rgb}{0.56,0.73,0.26}
+\definecolor{ggplotRed}{rgb}{0.87,0.29,0.2}
+\definecolor{ggplotBlue}{rgb}{0.2,0.54,0.74}
+\lstset { %
+	language=C++,
+	backgroundcolor=\color{black!5}, % set backgroundcolor
+	basicstyle=\footnotesize,% basic font setting
+	numbers=left, % display line numbers on the left
+	commentstyle=\color{ggplotGreen}, % comment color
+	keywordstyle=\color{ggplotBlue}, % keyword color
+	stringstyle=\color{ggplotRed} % string color
+}
+
+% Random packages
+\usepackage{lipsum}									% Lorem Ipsum
+%\usepackage[table]{xcolor}
+\usepackage[pdftex,dvipsnames,table]{xcolor}  % Coloured text etc.
+\usepackage[absolute,overlay]{textpos}
+%\rowcolors{2}{gray!10}{white}
+
+
+
+% References (the order is important!)
+\usepackage{varioref}				% use \vref to refference page
+\usepackage[numbers,square]{natbib}
+\usepackage{hyperref}				% make refferences to hyperlinks
+\hypersetup{
+	colorlinks=true,
+	linkcolor=black,        % Color of internal links
+	citecolor=black,          % Color of links to bibliography
+	filecolor=magenta,      % Color of file links
+	urlcolor=cyan           % Color of external links
+}
+\usepackage{cleveref}				% write equations/tabel/figurs/etc. infront  of refferences (\cref)
+\usepackage{bibentry}
+
+
+% Bibliography
+%\usepackage[backend=biber,
+%			hyperref=true,
+%            url=false,
+%            isbn=true,
+%            backref=false,			% Reference to page in the document
+%            citereset=chapter,
+%            maxcitenames=3,
+%            maxbibnames=100,
+%            block=none,
+%            sorting=none,
+%            style=numeric]{biblatex}
+%\bibliography{bibtex.bib}			% Name of .bib-file
+%\renewbibmacro{in:}{}				% remove "I:" before journal entry
+%\DeclareFieldFormat[book]{volume}{Vol. \textbf{#1}} % change volumenotation
+%\DeclareFieldFormat[article]{volume}{\textbf{#1}}	% change volumenotation
+
+
+% Font and Layout
+\usepackage{lmodern}	% Latin Modern (font)
+\raggedbottom			% accept unbalanced columns (They are not the same height)
+\usepackage{soul} 		% bigger space between letters than normal (frontpage)
+\sodef\an{}{0.2em}{.9em plus.6em}{1em plus.1em minus.1em} % Frontpage font
+\newcommand\stext[1]{\an{\scshape#1}} %Frontpage font
+\chapterstyle{plain}	% decide how chapternumber/-titel looks
+\checkandfixthelayout[nearest]
+
+% Header/Footer
+\nouppercaseheads
+\makepagestyle{minStil}
+\makeevenhead{minStil}{\slshape\leftmark}{}{}
+\makeoddhead{minStil}{}{}{\slshape\rightmark}
+\makeevenfoot{minStil}{\thepage}{}{}
+\makeoddfoot{minStil}{}{}{\thepage}
+\makepsmarks{minStil}{
+	\createmark{chapter}{left}{nonumber}{}{}}
+
+\pagestyle{minStil}
+%\usepackage{fancyhdr}
+%\pagestyle{fancy}
+%\fancypagestyle{main}{
+%	\fancyhf{}
+%	\fancyhead[LE,RO]{\slshape \rightmark}
+%	\fancyhead[LO,RE]{\slshape \leftmark}
+%	\fancyfoot[C]{\thepage}
+%	\renewcommand*{\headrulewidth}{0.4pt}
+%	\renewcommand*{\footrulewidth}{0pt}
+%}
+
+% Indholdsfortegnegelse
+\setsecnumdepth{subsection}
+\maxtocdepth{subsection}
+
+
+%-------- own makroer ---------
+\renewcommand{\*}{\cdot}			% Multiplication
+\renewcommand{\matrix}[1]{\bm{\mathrm{#1}}} % Bold vectors
+\renewcommand{\(}{\left(}			% adjustable left brackets
+\renewcommand{\)}{\right)}			% adjustable right brackets
+%\newcommand{\sub}[1]{_{\text{#1}}}	% Subscripts with text
+%\renewcommand{\sup}[1]{^{\text{#1}}}% Superscripts with text
+%\newcommand{\inv}{^{-1}}            % Invers
+%\renewcommand{\exp}[1]{\text{exp}\( #1 \)} % exp with brackets
+%\renewcommand{\ln}[1]{\text{ln}\( #1 \)} % ln with brackets
+
+%\renewcommand{\sin}[2]{				% Sinus with potenses and brackets
+%	\ifthenelse{\equal{#1}{1}}{\text{sin}\(#2\)}{\text{sin}^{#1}\(#2\)}}
+%\renewcommand{\cos}[2]{				% Cosinus with potenses and brackets
+%	\ifthenelse{\equal{#1}{1}}{\text{cos}\(#2\)}{\text{cos}^{#1}\(#2\)}}
+%\renewcommand{\tan}[2]{				% Cosinus with potenses and brackets
+%	\ifthenelse{\equal{#1}{1}}{\text{tan}\(#2\)}{\text{tan}^{#1}\(#2\)}}
+
+%\newcommand{\diff}[4]{				% 1: "hard" or "soft" afledte, 2: potens, 3: tæller, 4: nævner
+%	\ifthenelse{\equal{#1}{d}}{\frac{d^{#2}#3}{d#4^{#2}}}{
+%							   \frac{\partial^{#2}#3}{\partial#4^{#2}}}}
+\newcommand*\colvec[1]{\begin{pmatrix}#1\end{pmatrix}}		%make a columnvector (with soft brackts) af arbitary length, calls as: \colvec{1\\2\\...\\n}
+
+
+
+
+% make new definition of squareroots
+% it renames \sqrt as \oldsqrt
+\let\oldsqrt\sqrt
+% it defines the new \sqrt in terms of the old one
+\def\sqrt{\mathpalette\DHLhksqrt}
+\def\DHLhksqrt#1#2{%
+	\setbox0=\hbox{$#1\oldsqrt{#2\,}$}\dimen0=\ht0
+	\advance\dimen0-0.2\ht0
+	\setbox2=\hbox{\vrule height\ht0 depth -\dimen0}%
+	{\box0\lower0.4pt\box2}}
+
+\usepackage{verbatimbox}
+%\usepackage{unixode} %unicode characters
+\usepackage{tikz}
+\usetikzlibrary{positioning,matrix}
+
+\usepackage{datatool}
+\usepackage[nopostdot,style=super,nonumberlist,toc]{glossaries}
+\makeglossaries
+
+\usepackage[many]{tcolorbox}
+
+\usepackage{xargs}                      % Use more than one optional parameter in a new commands
+% Todo list
+
+%\usepackage[colorinlistoftodos,prependcaption,textsize=tiny]{todonotes}
+%\newcommandx{\unsure}[2][1=]{\todo[linecolor=red,backgroundcolor=red!25,bordercolor=red,#1]{#2}}
+%\newcommandx{\change}[2][1=]{\todo[linecolor=blue,backgroundcolor=blue!25,bordercolor=blue,#1]{#2}}
+%\newcommandx{\info}[2][1=]{\todo[linecolor=OliveGreen,backgroundcolor=OliveGreen!25,bordercolor=OliveGreen,#1]{#2}}
+%\newcommandx{\improvement}[2][1=]{\todo[linecolor=Plum,backgroundcolor=Plum!25,bordercolor=Plum,#1]{#2}}
+%\newcommandx{\thiswillnotshow}[2][1=]{\todo[disable,#1]{#2}}
+%
+
+
+%
+% Exampls 
+% \todo[inline]{The original todo note withouth changed colours.\newline Here's another line.}
+% \unsure{I'm unsure about also!}
+% \change{Change this!}
+% \info{This can help me in chapter seven!}
+% \improvement{This really needs to be improved!}
+%%
+
+
+% For the nice plots
+\usepackage{fontspec}
+\usepackage{pgfplots}
+\usepgfplotslibrary{groupplots}
+\usepackage{pgf}
+
+\usepackage{tikz}
+\usetikzlibrary{external}
+%\tikzsetexternalprefix{figures/tikz/}
+\tikzexternalize[prefix=figures/tikz/]
+\tikzset{external/mode=graphics if exists}
+
+\newlength\figureheight
+\newlength\figurewidth
+
+%\usepackage[T1]{fontenc}
+%\usepackage{titlesec, blindtext, color}
+%\definecolor{gray75}{gray}{0.75}
+%\newcommand{\hsp}{\hspace{20pt}}
+%\titleformat{\chapter}[hang]{\huge\bfseries}{\thechapter\hsp}{0pt}{\huge\bfseries}

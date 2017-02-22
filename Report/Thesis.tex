@@ -1,18 +1,18 @@
-\input{preamble_ida14}											% Preamble 
-\raggedbottom													% LaTeX "straekker" ikke teksten
+\input{preamble}												% Preamble 
+\raggedbottom													% LaTeX don't "strech" the text
 
-%\includeonly{file1,file2}										% Inkluder kun specifikke filer 
+%\includeonly{file1,file2}										% Inkluder only specific files
 
-\begin{document}												% Starter
-\frontmatter													% Forindhold - nummereres med romertal
+\begin{document}												% Start document
+\frontmatter													% nummbers with roman numbers
 %\include{Chapters/Forside/frontpage}
 %\include{Chapters/_Resume}
 
-%%%% Indholdsfortegnelse (TOC) %%%%
-\tableofcontents*												%Indholdsfortegnelsen (kaldet ToC) 
+%%%% content (TOC) %%%%
+\tableofcontents*												%content (called ToC) 
 
 
-\mainmatter														% Hovedindhold - nummereres fra side 1
+\mainmatter														% main part - numbered frompage 1
 \include{Chapters/Project_definition/_Project_definition}
 \include{Chapters/Theory/_Theory}
 
@@ -21,21 +21,21 @@
 
 
 
-%%%% Kilder %%%%
+%%%% Refferences %%%%
 \begingroup
 \raggedright
 %\bibliography{bibtex/Referencer}							
 % Litteraturlisten inkluderes
 \endgroup
 
-%%%% Fixme-listen %%%%
-\newpage														% Ny side til Fixme-listen
-%\listoffixmes													% Fixme-listen - fjernes til sidst i projektet med "%"
+%%%% Fixme-list %%%%
+\newpage														% New page to Fixme-list
+%\listoffixmes													% Fixme-list - removes in the end with "%"
 
-%%%% Appendiks %%%%
-\appendix														% Appendiks/bilag start - giver chapter bogstaver i stedet for tal
-\clearforchapter												% Sikrer at pagestylen aktiveres paa den rigtige side
-\phantomsection													% Kunstigt afsnit, som hyperlinks kan 'holde fast i'
-\pdfbookmark[0]{Appendiks}{appendiks}							% Tildeler en klikbar bookmark til den endelige PDF
+%%%% Appendix %%%%
+\appendix														% Appendix start - gives chapters letters instead of numbers
+\clearforchapter												% Secure that the pagestyle activates on the right page
+\phantomsection													% artificial chapter that hyperlinks can  'maintain in'
+\pdfbookmark[0]{Appendiks}{appendiks}							% gives the possibility to clickable bookmark for the final PDF
 
-\end{document}													% Slutter dokumentet - obligatorisk
+\end{document}													% finnish document - required
