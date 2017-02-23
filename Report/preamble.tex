@@ -1,5 +1,5 @@
 
-\documentclass[a4paper,11pt,fleqn,dvipsnames,oneside,openright]{memoir} 	% Openright open chapters on right page (openany both pages)
+\documentclass[a4paper,11pt,fleqn,oneside,openright]{memoir} 	% Openright open chapters on right page (openany both pages)
 
 % english setup
 \usepackage[english]{babel}
@@ -122,22 +122,10 @@
 \usepackage{bibentry}
 
 
-% Bibliography
-%\usepackage[backend=biber,
-%			hyperref=true,
-%            url=false,
-%            isbn=true,
-%            backref=false,			% Reference to page in the document
-%            citereset=chapter,
-%            maxcitenames=3,
-%            maxbibnames=100,
-%            block=none,
-%            sorting=none,
-%            style=numeric]{biblatex}
-%\bibliography{bibtex.bib}			% Name of .bib-file
-%\renewbibmacro{in:}{}				% remove "I:" before journal entry
-%\DeclareFieldFormat[book]{volume}{Vol. \textbf{#1}} % change volumenotation
-%\DeclareFieldFormat[article]{volume}{\textbf{#1}}	% change volumenotation
+% ¤¤ Bibliography ¤¤ %
+
+\bibliographystyle{IEEEtranN}				% Style of Bibliography
+%\bibliographystyle{bibtex/harvard}			% Style of Bibliography
 
 
 % Font and Layout
