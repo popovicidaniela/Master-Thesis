@@ -42,7 +42,9 @@ This paper is motivated by the papers \cite{DBLP:journals/corr/MnihKSGAWR13} and
 
 They propose a framework for an end-end autonomous driving model that takes in raw sensor input and output the driving actions. The model is able to handle partially observable scenarios. 
 
-The framework can be seen on \Cref{fig:Framework_article} 
+The framework can be seen on \Cref{fig:Framework_article}. In the model the spatial features are extracted via a CNN, which learns the features from data. To Decode the true environment state a LSTM network is used, which are able to control which information to keep from previous state. The final part of the framework is the reinforcement planing part. The inputs are the states of the environment and their aggregations over time. The output of the framework is the driving actions. 
+
+The paper used The Open-source Racing Car Simulator (Torcs) with a lane keeping assist algorithm to test the framework. The result is a successful lane keeping behavior with speed limit.    
 
 \begin{figure}[H]
 	\centering
