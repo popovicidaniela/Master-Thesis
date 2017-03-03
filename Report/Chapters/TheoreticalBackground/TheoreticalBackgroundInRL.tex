@@ -36,7 +36,7 @@ The tabular solution methods include three important classes of methods for solv
 
 The approximate solution methods are an extension to the tabular solution methods for huge states spaces problems. In these type of problems, the goal is to find a good approximate solution under the condition of restricted computational resources. Because almost every visited state is seen for the first time, every state being so unique, the agent needs to be able to make sense of it and, therefore, usefully generalize the information it gets. This is possible thanks to function approximation. “Function approximation is an instance of supervised learning, the primary topic studied in machine learning, artificial neural networks, pattern recognition, and statistical curve fitting” \cite{Sutton}.
 \subsection{Markov Decision Processes in RL}
-The general reinforcement learning problem formulation has the format of a finite MDP. The interaction between the agent and environment happens at each time step of a sequence of discrete time steps, $t=0,1,2,3,...$, where at each time step $t$ the agent receives a representation of the world - a state, $S_{t}\epsilon S$, from a set of possible states $S$, selects an action $A_{t}$ from a set of possible actions $A(S_{t})$ for the state $S_{t}$ by implementing a policy $\pi_{t}$, where $\pi_{t}(a|s)$ is the probability that $A_{t}=a$ if $S_{t}=s$, and in the next time step $t+1$ the agent receives a reward signal $R_{t+1}\epsilon R$ from the environment ending up in a new state $S_{t+1}$ \cite{Sutton}. The diagram in \Cref{fig:AgentEnv} illustrates the interaction between the agent and the environment.
+The general reinforcement learning problem formulation has the format of a finite MDP. The interaction between the agent and environment happens at each time step of a sequence of discrete time steps, $t=0,1,2,3,...$, where at each time step $t$ the agent receives a representation of the world - a state, $S_{t}\in S$, from a set of possible states $S$, selects an action $A_{t}$ from a set of possible actions $A(S_{t})$ for the state $S_{t}$ by implementing a policy $\pi_{t}$, where $\pi_{t}(a|s)$ is the probability that $A_{t}=a$ if $S_{t}=s$, and in the next time step $t+1$ the agent receives a reward signal $R_{t+1}\in R$ from the environment ending up in a new state $S_{t+1}$ \cite{Sutton}. The diagram in \Cref{fig:AgentEnv} illustrates the interaction between the agent and the environment.
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.7\textwidth]{Figures/Agent-EnvironmentInteraction}
@@ -57,16 +57,16 @@ The \textit{state} that has the Markov property represents all the useful inform
 \begin{equation}\label{psrsa}
 p(s',r|s,a)=Pr\left \{ S_{t+1}=s',R_{t+1}=r|S_{t}=s,A_{t}=a \right \}
 \end{equation}
-Based on the formula presented in (\ref{psrsa}) we can also compute the expected rewards for state-action pairs,
-
-formula
-
+Based on the formula presented in (\ref{psrsa}) we can also compute the expected rewards for state-action pairs \cite{Sutton},
+\begin{equation}
+r(s,a)=\mathop{{}\mathbb{E}}\left [ R_{t+1}|S_{t}=s,A_{t}=a \right ]=\sum_{r\in R}r\sum_{s'\in S}p(s',r|s,a)
+\end{equation}
 the \textit{state-transition probabilities}
-
-formula
-
+\begin{equation}
+p(s'|s,a)=Pr\left \{ S_{t+1}=s'|S_{t}=s,A_{t}=a \right \}=\sum_{r\in R}p(s',r|s,a)
+\end{equation}
 and the expected rewards for state-action-next-state triples,
-
-
-formula
-\cite{Sutton}.
+\begin{equation}
+r(s,a,s')=\mathop{{}\mathbb{E}}\left [ R_{t+1}|S_{t}=s,A_{t}=a,S_{t+1}=s' \right ]=
+\frac{\sum_{r\in R}rp(s',r|s,a)}{p(s'|s,a)}
+\end{equation}
