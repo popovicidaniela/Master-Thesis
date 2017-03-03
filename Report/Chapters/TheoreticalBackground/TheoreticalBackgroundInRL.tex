@@ -43,14 +43,12 @@ The general reinforcement learning problem formulation has the format of a finit
 	\caption{Agent - environment interaction}
 	\label{fig:AgentEnv}
 \end{figure}
-Reinforcement learning methods provide ways to adjust the policy based on the accumulated experience with the goal of maximizing the total cumulative reward in mind. An example for representing the goal in a reinforcement learning problem like that of making a robot learn to walk would be by giving a reward on each time step proportional to the robot's forward motion. “The reward signal is your way of communicating to the robot what you want it to achieve, not how you want it achieved” \cite{Sutton}.
+Reinforcement learning methods provide ways to adjust the policy based on the accumulated experience with the goal of maximizing the total cumulative reward in mind. An example for representing the goal in a reinforcement learning problem like that of making a robot learn to walk would be by giving a reward on each time step proportional to the robot's forward motion. “The reward signal is your way of communicating to the robot \textit{what} you want it to achieve, not \textit{how} you want it achieved” \cite{Sutton}.
 
-A formal definition of the cumulative reward received in the long run is expressed by the expected return $G_{t}$ which is a function of rewards sequence $R_{t+1},R_{t+2},...,R_{T}$ received after the time step $t$, where $T$ is the last time step:\begin{equation}
-G_{t}=R_{t+1}+R_{t+2}+...+R_{T}
+A formal definition of the cumulative reward received in the long run is expressed by the expected return $G_{t}$ which is a function of rewards sequence $R_{t+1},R_{t+2},...,R_{T}$ received after the time step $t$, where $T$ is the last time step. In order to express the return more conveniently the concept of \textit{discounting} is introduced which determines the current value of the future rewards. The formula generalized for both episodic and continuing tasks is the following: 
+\begin{equation}
+G_{t}=R_{t+1}+\gamma R_{t+2}+\gamma ^2R_{t+3}+...=\sum_{k=0}^{T-t-1}\gamma ^kR_{t+k+1}, 
 \end{equation}
-This is the case for the episodic tasks where there is a terminal state after some time steps. But there might be cases in which the process is continuous and the final step is infinite, therefore the return could also be infinite. In order to express the return more conveniently the concept of \textit{discounting} is introduced which determines the current value of the future rewards:\begin{equation}
-G_{t}=R_{t+1}+\gamma R_{t+2}+\gamma ^2R_{t+3}+...=\sum_{k=0}^{\infty }\gamma ^kR_{t+k+1}, 
-\end{equation}
-where $\gamma$ is the discount rate, $0\leq \gamma\leq1 $.
+where $\gamma$ is the discount rate, $0\leq \gamma\leq1$. In the case of episodic tasks where there is a terminal state after some time steps, $\gamma=1$. For the cases in which the process is continuous and the final step is infinite, $T=\infty$. 
 
 With the discounting factor, the reward received after $k$ time steps has the value "$\gamma ^{k-1}$ times what it would be worth if it were received immediately" \cite{Sutton}. In the extreme point where $\gamma=0$, it is said that the agent is myopic, because it only maximizes over the immediate rewards and not the future rewards, whereas if $\gamma$ is closer to $1$ the agent is farsighted and sees far into the future considering the future rewards when picking actions.
