@@ -64,7 +64,15 @@ and the expected rewards for state-action-next-state triples,
 r(s,a,s')=\mathop{{}\mathbb{E}}\left [ R_{t+1}|S_{t}=s,A_{t}=a,S_{t+1}=s' \right ]=
 \frac{\sum_{r\in R}rp(s',r|s,a)}{p(s'|s,a)}
 \end{equation}
-Values functions
+Value functions estimate how good it is to be in a specific state given the expected return and the policy.
+
+The \textit{state-value function} for policy $\pi$, $v_{\pi }$ is the following:
+
+The \textit{action-value function} for policy $\pi$, $q_{\pi }$ is the following:
+
+Value functions have the property of being expressed recursively. The recursive representation is actually the Bellman equation and it's solution is the value of $v_{\pi }$:
+
+Optimal value functions
 \subsection{Solution methods}
 The solution methods for the reinforcement learning problem can be divided into two groups, tabular and approximate. The tabular solution methods find exact, optimal solutions and are more suitable when the states and actions space is rather small, while the approximate solution methods provide approximate solutions and it is applicable to large spaces problems.
 
