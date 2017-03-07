@@ -77,7 +77,7 @@ q_{\pi }(a,s)=\mathop{{}\mathbb{E}_{\pi}}\left [G_{t}|S_{t}=s,A_{t}=a \right ]=\
 \end{equation}
 
 Value functions have the property of being expressed recursively. The recursive representation is actually the \textit{Bellman equation} and it's solution is the value of $v_{\pi }$. It is like a look ahead procedure, where the value of a current state is evaluated by looking ahead at the values that future states can offer. "The Bellman equation averages over all the possibilities, weighting each by its probability of occurring. It states that the value of the start state must equal the (discounted) value of the expected next state, plus the reward expected along the way" \cite{Sutton}:
-\begin{equation}
+\begin{equation}\label{StateValueFunction}
 v_{\pi }(s)=\mathop{{}\mathbb{E}_{\pi}}\left [G_{t}|S_{t}=s \right ]=\sum_{a}\pi(a|s)\sum_{s',r}p(s',r|s,a)\left [ r+\gamma v_{\pi }(s') \right ]), \forall s\in S
 \end{equation}
 The Bellman equation represents the basis of different ways of computing, approximating, and learning $v_{\pi }$ \cite{Sutton}.
@@ -92,7 +92,7 @@ q_{*}(s,a)=\max_{\pi}q_{\pi}(s,a), \forall s\in S , a \in A(s)
 \end{equation}
 
 The \textit{Bellman optimality equation} for $v_{*}$ is the value of a state on the optimal policy basis, which is the same as the expected return of the best action for that state \cite{Sutton}:
-\begin{equation}
+\begin{equation}\label{BellmanOptimalityVstar}
 \begin{split}
 v_{*}(s)&=\max_{a \in A(s)}q_{\pi*}(s,a) \\
 &=\mathop{{}\mathbb{E}}\left [ R_{t+1} + \gamma v_{*}(S_{t+1})|S_{t}=s, A_{t}=a  \right ] \\
@@ -100,19 +100,29 @@ v_{*}(s)&=\max_{a \in A(s)}q_{\pi*}(s,a) \\
 \end{split}
 \end{equation}
 
-And the Bellman optimality equation for $q_{*}$ is the following:
-\begin{equation}
+And the \textit{Bellman optimality equation} for $q_{*}$ is the following:
+\begin{equation}\label{BellmanOptimalityQstar}
 \begin{split}
 q_{*}(s,a)&=\mathop{{}\mathbb{E}}\left [ R_{t+1} + \gamma \max_{a'}q_{*}(S_{t+1},a')|S_{t}=s, A_{t}=a  \right ] \\
 &=\sum_{s',r}p(s',r|s,a)\left [ r+\gamma\max_{a'}q_{*}(s',a') \right ]
 \end{split}
 \end{equation}
 
-The Bellman optimality equation generates a system of $N$ nonlinear equations, where $N$ is the number of states. It can be simply be solved by applying some nonlinear methods when the system dynamics ($p(s',r|s,a)$) are known. Given the Bellman optimality equation solution one has the optimal policy, e.g. one can, at any state, choose the action that corresponds to the maximum return, which is also valid in the long term, because the values take into account the reward consequences of all possible future behavior \cite{Sutton}. In the case of the action-value pairs the system's dynamics might be unknown and the actions would still be optimal, because it would choose the actions that would maximize $q_{*}$.
+The Bellman optimality equation generates a system of $N$ nonlinear equations, where $N$ is the number of states. It can be simply solved by applying some nonlinear methods when the system dynamics ($p(s',r|s,a)$) are known. The solution to the Bellman optimality equation helps in defining the optimal policy; e.g. one can, at any state, choose the action that corresponds to the maximum return, which is also valid in the long term, because the values take into account the reward consequences of all possible future behavior options \cite{Sutton}. In the case of the action-value pairs, if the system's dynamics are unknown, then the actions would still be optimal, because the agent would choose the actions that would maximize $q_{*}$.
 
 \subsection{Solution methods}
 The solution methods for the reinforcement learning problem can be divided into two groups, tabular and approximate. The tabular solution methods find exact, optimal solutions and are more suitable when the states and actions space is rather small, while the approximate solution methods provide approximate solutions and it is applicable to large spaces problems.
 
+\subsubsection{Tabular solution methods}
 The tabular solution methods include three important classes of methods for solving the finite MDP: dynamic programming, Monte Carlo and temporal-difference learning. Combinations of these and addition of other features like eligibility traces, model learning would result in better approaches.
 
-The approximate solution methods are an extension to the tabular solution methods for huge states spaces problems. In these type of problems, the goal is to find a good approximate solution under the condition of restricted computational resources. Because almost every visited state is seen for the first time, every state being so unique, the agent needs to be able to make sense of it and, therefore, usefully generalize the information it gets. This is possible thanks to function approximation. “Function approximation is an instance of supervised learning, the primary topic studied in machine learning, artificial neural networks, pattern recognition, and statistical curve fitting” \cite{Sutton}.
+\textit{Dynamic programming (DP)} uses the Bellman optimality equations \ref{BellmanOptimalityVstar} and \ref{BellmanOptimalityQstar} as update functions for improving approximations of the targeted value functions. 
+
+DP performs \textit{policy evaluation} by computing the state-value function $v_{\pi}$ according to the equation \ref{StateValueFunction} at every iteration, generating a sequence of updates $v_{0}, v_{1}, v_{2},...$, where $v_{0}$ can be initialized randomly with $0$ for example. This process of iterative policy evaluation is deployed at each state and stops when the maximal difference between two consecutive updates is small enough.
+
+\textit{Monte Carlo} solution method description...
+
+\textit{Temporal Difference} solution method description...
+
+\subsubsection{Approximate solution methods}
+The approximate solution methods are an extension to the tabular solution methods for huge states spaces problems. In this type of problems, the goal is to find a good approximate solution under the condition of restricted computational resources. Because almost every visited state is seen for the first time, every state being so unique, the agent needs to be able to make sense of it and, therefore, usefully generalize the information it gets. This is possible thanks to function approximation. “Function approximation is an instance of supervised learning, the primary topic studied in machine learning, artificial neural networks, pattern recognition, and statistical curve fitting” \cite{Sutton}.
