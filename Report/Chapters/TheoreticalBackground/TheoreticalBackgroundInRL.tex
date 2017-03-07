@@ -66,13 +66,50 @@ r(s,a,s')=\mathop{{}\mathbb{E}}\left [ R_{t+1}|S_{t}=s,A_{t}=a,S_{t+1}=s' \right
 \end{equation}
 Value functions estimate how good it is to be in a specific state given the expected return and the policy.
 
-The \textit{state-value function} for policy $\pi$, $v_{\pi }$ is the following:
+The \textit{state-value function} for policy $\pi$, $v_{\pi }$ expresses the expected value of a random variable given the followed policy $\pi$ at any time step $t$:
+\begin{equation}
+v_{\pi }(s)=\mathop{{}\mathbb{E}_{\pi}}\left [G_{t}|S_{t}=s \right ]=\mathop{{}\mathbb{E}_{\pi}}\left [ \sum_{k=0}^{\infty}\gamma ^kR_{t+k+1} |S_{t}=s\right ]
+\end{equation}
 
-The \textit{action-value function} for policy $\pi$, $q_{\pi }$ is the following:
+The \textit{action-value function} for policy $\pi$, $q_{\pi }$ is the value of taking an action $a$ in a state $s$ while following the policy $\pi$:
+\begin{equation}
+q_{\pi }(a,s)=\mathop{{}\mathbb{E}_{\pi}}\left [G_{t}|S_{t}=s,A_{t}=a \right ]=\mathop{{}\mathbb{E}_{\pi}}\left [ \sum_{k=0}^{\infty}\gamma ^kR_{t+k+1} |S_{t}=s,A_{t}=a\right ]
+\end{equation}
 
-Value functions have the property of being expressed recursively. The recursive representation is actually the Bellman equation and it's solution is the value of $v_{\pi }$:
+Value functions have the property of being expressed recursively. The recursive representation is actually the \textit{Bellman equation} and it's solution is the value of $v_{\pi }$. It is like a look ahead procedure, where the value of a current state is evaluated by looking ahead at the values that future states can offer. "The Bellman equation averages over all the possibilities, weighting each by its probability of occurring. It states that the value of the start state must equal the (discounted) value of the expected next state, plus the reward expected along the way" \cite{Sutton}:
+\begin{equation}
+v_{\pi }(s)=\mathop{{}\mathbb{E}_{\pi}}\left [G_{t}|S_{t}=s \right ]=\sum_{a}\pi(a|s)\sum_{s',r}p(s',r|s,a)\left [ r+\gamma v_{\pi }(s') \right ]), \forall s\in S
+\end{equation}
+The Bellman equation represents the basis of different ways of computing, approximating, and learning $v_{\pi }$ \cite{Sutton}.
 
-Optimal value functions
+In finite MDPs, an \textit{optimal policy} $\pi_{*}$ is the policy for which its expected return for all the states is greater than or equal to the expected return of all the other policies. There can be many policies that are optimal due to their \textit{state-value function}, which evaluates the same for all the optimal policies:\begin{equation}
+v_{*}(s)=\max_{\pi}v_{\pi}(s), \forall s\in S
+\end{equation}
+
+Analogically, the \textit{optimal action-value function} is formed:
+\begin{equation}
+q_{*}(s,a)=\max_{\pi}q_{\pi}(s,a), \forall s\in S , a \in A(s)
+\end{equation}
+
+The \textit{Bellman optimality equation} for $v_{*}$ is the value of a state on the optimal policy basis, which is the same as the expected return of the best action for that state \cite{Sutton}:
+\begin{equation}
+\begin{split}
+v_{*}(s)&=\max_{a \in A(s)}q_{\pi*}(s,a) \\
+&=\mathop{{}\mathbb{E}}\left [ R_{t+1} + \gamma v_{*}(S_{t+1})|S_{t}=s, A_{t}=a  \right ] \\
+&=\max_{a \in A(s)}\sum_{s',r}p(s',r|s,a)\left [ r+\gamma v_{*}(s') \right ]
+\end{split}
+\end{equation}
+
+And the Bellman optimality equation for $q_{*}$ is the following:
+\begin{equation}
+\begin{split}
+q_{*}(s,a)&=\mathop{{}\mathbb{E}}\left [ R_{t+1} + \gamma \max_{a'}q_{*}(S_{t+1},a')|S_{t}=s, A_{t}=a  \right ] \\
+&=\sum_{s',r}p(s',r|s,a)\left [ r+\gamma\max_{a'}q_{*}(s',a') \right ]
+\end{split}
+\end{equation}
+
+The Bellman optimality equation generates a system of $N$ nonlinear equations, where $N$ is the number of states. It can be simply be solved by applying some nonlinear methods when the system dynamics ($p(s',r|s,a)$) are known. Given the Bellman optimality equation solution one has the optimal policy, e.g. one can, at any state, choose the action that corresponds to the maximum return, which is also valid in the long term, because the values take into account the reward consequences of all possible future behavior \cite{Sutton}. In the case of the action-value pairs the system's dynamics might be unknown and the actions would still be optimal, because it would choose the actions that would maximize $q_{*}$.
+
 \subsection{Solution methods}
 The solution methods for the reinforcement learning problem can be divided into two groups, tabular and approximate. The tabular solution methods find exact, optimal solutions and are more suitable when the states and actions space is rather small, while the approximate solution methods provide approximate solutions and it is applicable to large spaces problems.
 
