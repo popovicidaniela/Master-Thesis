@@ -1,6 +1,7 @@
 import threading
 import multiprocessing
 import scipy.signal
+import sys
 from helper import *
 from vizdoom import *
 from time import sleep
@@ -178,14 +179,15 @@ class Worker():
                      self.local_AC.advantages: advantages,
                      self.local_AC.state_in[0]: rnn_state[0],
                      self.local_AC.state_in[1]: rnn_state[1]}
-        v_l, p_l, e_l, g_n, v_n, _ = sess.run([self.local_AC.value_loss,
+        v_l, p_l, e_l, loss_f, g_n, v_n, _ = sess.run([self.local_AC.value_loss,
                                                self.local_AC.policy_loss,
                                                self.local_AC.entropy,
+                                               self.local_AC.loss,
                                                self.local_AC.grad_norms,
                                                self.local_AC.var_norms,
                                                self.local_AC.apply_grads],
                                               feed_dict=feed_dict)
-        return v_l / len(rollout), p_l / len(rollout), e_l / len(rollout), g_n, v_n
+        return v_l / len(rollout), p_l / len(rollout), e_l / len(rollout), loss_f / len(rollout), g_n, v_n
 
     def work(self, max_episode_length, gamma, sess, coord, saver):
         episode_count = sess.run(self.global_episodes)
@@ -243,7 +245,7 @@ class Worker():
                                       feed_dict={self.local_AC.inputs: [s],
                                                  self.local_AC.state_in[0]: rnn_state[0],
                                                  self.local_AC.state_in[1]: rnn_state[1]})[0, 0]
-                        v_l, p_l, e_l, g_n, v_n = self.train(episode_buffer, sess, gamma, v1)
+                        v_l, p_l, e_l, loss_f, g_n, v_n = self.train(episode_buffer, sess, gamma, v1)
                         episode_buffer = []
                         sess.run(self.update_local_ops)
                     if d:
@@ -255,7 +257,7 @@ class Worker():
 
                 # Update the network using the experience buffer at the end of the episode.
                 if len(episode_buffer) != 0:
-                    v_l, p_l, e_l, g_n, v_n = self.train(episode_buffer, sess, gamma, 0.0)
+                    v_l, p_l, e_l, loss_f, g_n, v_n = self.train(episode_buffer, sess, gamma, 0.0)
 
                 # Periodically save gifs of episodes, model parameters, and summary statistics.
                 if episode_count % 5 == 0 and episode_count != 0:
@@ -268,7 +270,7 @@ class Worker():
                         saver.save(sess, self.model_path + '/model-' + str(episode_count) + '.cptk')
                         print("Saved Model")
 
-                    mean_reward = np.mean(self.episode_rewards[-5:])  # mean over the last 5 elements
+                    mean_reward = np.mean(self.episode_rewards[-5:])  # mean over the last 5 elements of episode Rs
                     mean_length = np.mean(self.episode_lengths[-5:])
                     mean_value = np.mean(self.episode_mean_values[-5:])
                     summary = tf.Summary()
@@ -281,6 +283,7 @@ class Worker():
                     summary.value.add(tag='Losses/Entropy', simple_value=float(e_l))
                     summary.value.add(tag='Losses/Grad Norm', simple_value=float(g_n))
                     summary.value.add(tag='Losses/Var Norm', simple_value=float(v_n))
+                    summary.value.add(tag='Losses/Loss', simple_value=float(loss_f))
                     self.summary_writer.add_summary(summary, episode_count)
 
                     self.summary_writer.flush()
@@ -289,49 +292,57 @@ class Worker():
                 episode_count += 1
 
 
-max_episode_length = 300
-gamma = .99  # discount rate for advantage estimation and reward discounting
-s_size = 7056  # Observations are greyscale frames of 84 * 84 * 1
-a_size = 3  # Agent can move Left, Right, or Fire
-load_model = False
-model_path = './model'
+def play():
+    max_episode_length = 300
+    gamma = .99  # discount rate for advantage estimation and reward discounting
+    s_size = 7056  # Observations are greyscale frames of 84 * 84 * 1
+    a_size = 3  # Agent can move Left, Right, or Fire
+    load_model = True  # True for starting from the previous params values
+    model_path = './model'
 
-tf.reset_default_graph()
+    tf.reset_default_graph()
 
-if not os.path.exists(model_path):
-    os.makedirs(model_path)
+    if not os.path.exists(model_path):
+        os.makedirs(model_path)
 
-# Create a directory to save episode playback gifs to
-if not os.path.exists('./frames'):
-    os.makedirs('./frames')
+    # Create a directory to save episode playback gifs to
+    if not os.path.exists('./frames'):
+        os.makedirs('./frames')
 
-with tf.device("/cpu:0"):
-    global_episodes = tf.Variable(0, dtype=tf.int32, name='global_episodes', trainable=False)
-    trainer = tf.train.AdamOptimizer(learning_rate=1e-4)  # trainer for the Workers
-    master_network = AC_Network(s_size, a_size, 'global', None)  # Generate global network with trainer None
-    num_workers = multiprocessing.cpu_count()  # Set workers at number of available CPU threads
-    workers = []
-    # Create worker classes
-    for i in range(num_workers):
-        workers.append(Worker(DoomGame(), i, s_size, a_size, trainer, model_path, global_episodes))
-    saver = tf.train.Saver(max_to_keep=5)
+    with tf.device("/cpu:0"):
+        global_episodes = tf.Variable(0, dtype=tf.int32, name='global_episodes', trainable=False)
+        trainer = tf.train.AdamOptimizer(learning_rate=1e-4)  # trainer for the Workers
+        master_network = AC_Network(s_size, a_size, 'global', None)  # Generate global network with trainer None
+        if sys.argv[1] == "1":
+            num_workers = multiprocessing.cpu_count()  # Set workers at number of available CPU threads
+            load_model = False
+        else:
+            num_workers = 1  # 1 for using 1 CPU and run the trained model
+        workers = []
+        # Create worker classes
+        for i in range(num_workers):
+            workers.append(Worker(DoomGame(), i, s_size, a_size, trainer, model_path, global_episodes))
+        saver = tf.train.Saver(max_to_keep=5)
 
-with tf.Session() as sess:
-    coord = tf.train.Coordinator()
-    if load_model:
-        print('Loading Model...')
-        ckpt = tf.train.get_checkpoint_state(model_path)
-        saver.restore(sess, ckpt.model_checkpoint_path)
-    else:
-        sess.run(tf.global_variables_initializer())
+    with tf.Session() as sess:
+        coord = tf.train.Coordinator()
+        if load_model:
+            print('Loading Model...')
+            ckpt = tf.train.get_checkpoint_state(model_path)
+            saver.restore(sess, ckpt.model_checkpoint_path)
+        else:
+            sess.run(tf.global_variables_initializer())
 
-    # This is where the asynchronous magic happens.
-    # Start the "work" process for each worker in a separate threat.
-    worker_threads = []
-    for worker in workers:
-        worker_work = lambda: worker.work(max_episode_length, gamma, sess, coord, saver)
-        t = threading.Thread(target=(worker_work))
-        t.start()
-        sleep(0.5)
-        worker_threads.append(t)
-    coord.join(worker_threads)  # waits until the specified threads have stopped.
+        # This is where the asynchronous magic happens.
+        # Start the "work" process for each worker in a separate thread.
+        worker_threads = []
+        for worker in workers:
+            worker_work = lambda: worker.work(max_episode_length, gamma, sess, coord, saver)
+            t = threading.Thread(target=worker_work)
+            t.start()
+            sleep(0.5)
+            worker_threads.append(t)
+        coord.join(worker_threads)  # waits until the specified threads have stopped.
+
+if __name__ == "__main__":
+    play()
