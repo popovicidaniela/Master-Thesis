@@ -121,7 +121,8 @@ class Worker():
         self.episode_rewards = []
         self.episode_lengths = []
         self.episode_mean_values = []
-        self.summary_writer = tf.summary.FileWriter("train_" + str(self.number))
+        self.summary_writer_train = tf.summary.FileWriter("train_" + str(self.number))
+        self.summary_writer_play = tf.summary.FileWriter("play_" + str(self.number))
 
         # Create the local copy of the network and the tensorflow op to copy global params to local network
         self.local_AC = AC_Network(s_size, a_size, self.name, trainer)
@@ -145,7 +146,7 @@ class Worker():
         game.add_available_game_variable(GameVariable.POSITION_Y)
         game.set_episode_timeout(300)
         game.set_episode_start_time(10)
-        game.set_window_visible(False)
+        game.set_window_visible(True)
         game.set_sound_enabled(False)
         game.set_living_reward(-1)
         game.set_mode(Mode.PLAYER)
@@ -284,12 +285,81 @@ class Worker():
                     summary.value.add(tag='Losses/Grad Norm', simple_value=float(g_n))
                     summary.value.add(tag='Losses/Var Norm', simple_value=float(v_n))
                     summary.value.add(tag='Losses/Loss', simple_value=float(loss_f))
-                    self.summary_writer.add_summary(summary, episode_count)
+                    self.summary_writer_train.add_summary(summary, episode_count)
 
-                    self.summary_writer.flush()
+                    self.summary_writer_train.flush()
                 if self.name == 'worker_0':
                     sess.run(self.increment)
                 episode_count += 1
+
+    def work_no_training(self, sess):
+        episode_count = sess.run(self.global_episodes)
+        total_steps = 0
+        print("Starting worker " + str(self.number))
+        with sess.as_default(), sess.graph.as_default():
+            sess.run(self.update_local_ops)
+            episode_buffer = []
+            episode_values = []
+            episode_frames = []
+            episode_reward = 0
+            episode_step_count = 0
+
+            self.env.new_episode()
+            s = self.env.get_state().screen_buffer  # returns screen_buffer prop of the GameState object
+            episode_frames.append(s)
+            s = process_frame(s)
+            rnn_state = self.local_AC.state_init
+
+            while not self.env.is_episode_finished():
+                # Take an action using probabilities from policy network output.
+                a_dist, v, rnn_state = sess.run(
+                    [self.local_AC.policy, self.local_AC.value, self.local_AC.state_out],
+                    feed_dict={self.local_AC.inputs: [s],
+                               self.local_AC.state_in[0]: rnn_state[0],
+                               self.local_AC.state_in[1]: rnn_state[1]})
+                a = np.random.choice(a_dist[0], p=a_dist[0])  # a random sample is generated given the probabilities
+                a = np.argmax(a_dist == a)
+                # make action takes a list of button states and returns a reward - the result of making the action:
+                r = self.env.make_action(self.actions[a]) / 100.0
+                is_episode_finished = self.env.is_episode_finished()  # True of False output
+                if not is_episode_finished:
+                    s1 = self.env.get_state().screen_buffer
+                    episode_frames.append(s1)
+                    s1 = process_frame(s1)
+                else:
+                    s1 = s
+
+                episode_buffer.append([s, a, r, s1, is_episode_finished, v[0, 0]])
+                episode_values.append(v[0, 0])
+
+                episode_reward += r
+                s = s1
+                total_steps += 1
+                episode_step_count += 1
+
+                if is_episode_finished:
+                    break
+
+            self.episode_rewards.append(episode_reward)
+            self.episode_lengths.append(episode_step_count)
+            self.episode_mean_values.append(np.mean(episode_values))
+
+            # Periodically save summary statistics for tensor board
+            if episode_count % 5 == 0 and episode_count != 0:
+                mean_reward = np.mean(self.episode_rewards[-5:])  # mean over the last 5 elements of episode Rs
+                mean_length = np.mean(self.episode_lengths[-5:])
+                mean_value = np.mean(self.episode_mean_values[-5:])
+                summary = tf.Summary()
+
+                summary.value.add(tag='Perf/Reward', simple_value=float(mean_reward))
+                summary.value.add(tag='Perf/Length', simple_value=float(mean_length))
+                summary.value.add(tag='Perf/Value', simple_value=float(mean_value))
+                self.summary_writer_play.add_summary(summary, episode_count)
+
+                self.summary_writer_play.flush()
+            if self.name == 'worker_0':
+                sess.run(self.increment)
+            episode_count += 1
 
 
 def play():
