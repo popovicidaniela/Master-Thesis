@@ -155,7 +155,7 @@ class Worker:
         self.update_local_ops = update_target_graph('global', self.name)
         # Doom setup
         self.env = setup_env(game)
-        self.actions = self.actions = np.identity(a_size, dtype=bool).tolist()
+        self.actions = np.identity(a_size, dtype=bool).tolist()
         # End Doom setup
 
     def train(self, rollout, sess, gamma, bootstrap_value):
