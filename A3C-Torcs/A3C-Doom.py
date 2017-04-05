@@ -310,9 +310,6 @@ def initialize_variables(saver, sess, load_model):
 
 
 def play_training(training=True, load_model=True):
-    max_episode_length = 300
-    gamma = .99  # discount rate for advantage estimation and reward discounting
-
     with tf.device("/cpu:0"):
         global_episodes = tf.Variable(0, dtype=tf.int32, name='global_episodes', trainable=False)
         trainer = tf.train.AdamOptimizer(learning_rate=1e-4)  # trainer for the Workers
@@ -343,6 +340,8 @@ def play_training(training=True, load_model=True):
 
 
 if __name__ == "__main__":
+    max_episode_length = 300
+    gamma = .99  # discount rate for advantage estimation and reward discounting
     s_size = 7056  # Observations are greyscale frames of 84 * 84 * 1
     a_size = 3  # Agent can move Left, Right, or Fire
     model_path = './model'
@@ -357,7 +356,7 @@ if __name__ == "__main__":
         os.makedirs('./frames')
 
     if len(sys.argv) == 1:  # run in in PyCharm, adjust True/ False
-        play_training(training=True, load_model=True)
+        play_training(training=False, load_model=True)
     elif sys.argv[1] == "1":  # lunch in Terminal and specify 0 or 1 as arguments
         play_training(training=True, load_model=True)
     elif sys.argv[1] == "0":
