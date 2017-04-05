@@ -42,6 +42,32 @@ def normalized_columns_initializer(std=1.0):
     return _initializer
 
 
+def setup_env(game):
+    game.set_doom_scenario_path("basic.wad")  # This corresponds to the simple task we will pose our agent
+    game.set_doom_map("map01")
+    game.set_screen_resolution(ScreenResolution.RES_160X120)
+    game.set_screen_format(ScreenFormat.GRAY8)
+    game.set_render_hud(False)
+    game.set_render_crosshair(False)
+    game.set_render_weapon(True)
+    game.set_render_decals(False)
+    game.set_render_particles(False)
+    game.add_available_button(Button.MOVE_LEFT)
+    game.add_available_button(Button.MOVE_RIGHT)
+    game.add_available_button(Button.ATTACK)
+    game.add_available_game_variable(GameVariable.AMMO2)
+    game.add_available_game_variable(GameVariable.POSITION_X)
+    game.add_available_game_variable(GameVariable.POSITION_Y)
+    game.set_episode_timeout(300)
+    game.set_episode_start_time(10)
+    game.set_window_visible(True)
+    game.set_sound_enabled(False)
+    game.set_living_reward(-1)
+    game.set_mode(Mode.PLAYER)
+    game.init()
+    return game
+
+
 class AC_Network:
     def __init__(self, s_size, a_size, scope, trainer):
         with tf.variable_scope(scope):
@@ -127,33 +153,10 @@ class Worker:
         # Create the local copy of the network and the tensorflow op to copy global params to local network
         self.local_AC = AC_Network(s_size, a_size, self.name, trainer)
         self.update_local_ops = update_target_graph('global', self.name)
-
-        # The Below code is related to setting up the Doom environment
-        game.set_doom_scenario_path("basic.wad")  # This corresponds to the simple task we will pose our agent
-        game.set_doom_map("map01")
-        game.set_screen_resolution(ScreenResolution.RES_160X120)
-        game.set_screen_format(ScreenFormat.GRAY8)
-        game.set_render_hud(False)
-        game.set_render_crosshair(False)
-        game.set_render_weapon(True)
-        game.set_render_decals(False)
-        game.set_render_particles(False)
-        game.add_available_button(Button.MOVE_LEFT)
-        game.add_available_button(Button.MOVE_RIGHT)
-        game.add_available_button(Button.ATTACK)
-        game.add_available_game_variable(GameVariable.AMMO2)
-        game.add_available_game_variable(GameVariable.POSITION_X)
-        game.add_available_game_variable(GameVariable.POSITION_Y)
-        game.set_episode_timeout(300)
-        game.set_episode_start_time(10)
-        game.set_window_visible(True)
-        game.set_sound_enabled(False)
-        game.set_living_reward(-1)
-        game.set_mode(Mode.PLAYER)
-        game.init()
+        # Doom setup
+        self.env = setup_env(game)
         self.actions = self.actions = np.identity(a_size, dtype=bool).tolist()
-        # End Doom set-up
-        self.env = game
+        # End Doom setup
 
     def train(self, rollout, sess, gamma, bootstrap_value):
         rollout = np.array(rollout)
