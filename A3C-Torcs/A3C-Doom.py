@@ -193,7 +193,7 @@ class Worker:
                                                       feed_dict=feed_dict)
         return v_l / len(rollout), p_l / len(rollout), e_l / len(rollout), loss_f / len(rollout), g_n, v_n
 
-    def work(self, max_episode_length, gamma, sess, coord, saver):
+    def work(self, max_episode_length, gamma, sess, coord, saver, training):
         episode_count = sess.run(self.global_episodes)
         total_steps = 0
         print("Starting worker " + str(self.number))
@@ -205,7 +205,6 @@ class Worker:
                 episode_frames = []
                 episode_reward = 0
                 episode_step_count = 0
-                d = False
 
                 self.env.new_episode()
                 s = self.env.get_state().screen_buffer  # returns screen_buffer prop of the GameState object
@@ -224,15 +223,15 @@ class Worker:
                     a = np.argmax(a_dist == a)
                     # make action takes a list of button states and returns a reward - the result of making the action:
                     r = self.env.make_action(self.actions[a]) / 100.0
-                    d = self.env.is_episode_finished()  # True of False output
-                    if not d:
+                    is_episode_finished = self.env.is_episode_finished()  # True of False output
+                    if not is_episode_finished:
                         s1 = self.env.get_state().screen_buffer
                         episode_frames.append(s1)
                         s1 = process_frame(s1)
                     else:
                         s1 = s
 
-                    episode_buffer.append([s, a, r, s1, d, v[0, 0]])
+                    episode_buffer.append([s, a, r, s1, is_episode_finished, v[0, 0]])
                     episode_values.append(v[0, 0])
 
                     episode_reward += r
@@ -242,7 +241,8 @@ class Worker:
 
                     # If the episode hasn't ended, but the experience buffer is full, then we
                     # make an update step using that experience rollout.
-                    if len(episode_buffer) == 30 and d is not True and episode_step_count != max_episode_length - 1:
+                    if training and len(
+                            episode_buffer) == 30 and is_episode_finished is not True and episode_step_count != max_episode_length - 1:
                         # Since we don't know what the true final return is, we "bootstrap" from our current
                         # value estimation
                         v1 = sess.run(self.local_AC.value,
@@ -252,7 +252,7 @@ class Worker:
                         v_l, p_l, e_l, loss_f, g_n, v_n = self.train(episode_buffer, sess, gamma, v1)
                         episode_buffer = []
                         sess.run(self.update_local_ops)
-                    if d:
+                    if is_episode_finished:
                         break
 
                 self.episode_rewards.append(episode_reward)
@@ -260,109 +260,44 @@ class Worker:
                 self.episode_mean_values.append(np.mean(episode_values))
 
                 # Update the network using the experience buffer at the end of the episode.
-                if len(episode_buffer) != 0:
+                if training and len(episode_buffer) != 0:
                     v_l, p_l, e_l, loss_f, g_n, v_n = self.train(episode_buffer, sess, gamma, 0.0)
 
                 # Periodically save gifs of episodes, model parameters, and summary statistics.
                 if episode_count % 5 == 0 and episode_count != 0:
-                    if self.name == 'worker_0' and episode_count % 25 == 0:
+                    if training and self.name == 'worker_0' and episode_count % 25 == 0:
                         time_per_step = 0.05
                         images = np.array(episode_frames)
                         make_gif(images, './frames/image' + str(episode_count) + '.gif',
                                  duration=len(images) * time_per_step, true_image=True, salience=False)
-                    if episode_count % 250 == 0 and self.name == 'worker_0':
+                    if training and episode_count % 250 == 0 and self.name == 'worker_0':
                         saver.save(sess, self.model_path + '/model-' + str(episode_count) + '.cptk')
                         print("Saved Model")
 
                     mean_reward = np.mean(self.episode_rewards[-5:])  # mean over the last 5 elements of episode Rs
                     mean_length = np.mean(self.episode_lengths[-5:])
                     mean_value = np.mean(self.episode_mean_values[-5:])
-                    summary = tf.Summary()
 
+                    summary = tf.Summary()
                     summary.value.add(tag='Performance/Reward', simple_value=float(mean_reward))
                     summary.value.add(tag='Performance/Length', simple_value=float(mean_length))
                     summary.value.add(tag='Performance/Value', simple_value=float(mean_value))
-                    summary.value.add(tag='Losses/Value Loss', simple_value=float(v_l))
-                    summary.value.add(tag='Losses/Policy Loss', simple_value=float(p_l))
-                    summary.value.add(tag='Losses/Entropy', simple_value=float(e_l))
-                    summary.value.add(tag='Losses/Grad Norm', simple_value=float(g_n))
-                    summary.value.add(tag='Losses/Var Norm', simple_value=float(v_n))
-                    summary.value.add(tag='Losses/Loss', simple_value=float(loss_f))
-                    self.summary_writer_train.add_summary(summary, episode_count)
+                    if training:
+                        summary.value.add(tag='Losses/Value Loss', simple_value=float(v_l))
+                        summary.value.add(tag='Losses/Policy Loss', simple_value=float(p_l))
+                        summary.value.add(tag='Losses/Entropy', simple_value=float(e_l))
+                        summary.value.add(tag='Losses/Grad Norm', simple_value=float(g_n))
+                        summary.value.add(tag='Losses/Var Norm', simple_value=float(v_n))
+                        summary.value.add(tag='Losses/Loss', simple_value=float(loss_f))
+                        self.summary_writer_train.add_summary(summary, episode_count)
+                        self.summary_writer_train.flush()
+                    else:
+                        self.summary_writer_play.add_summary(summary, episode_count)
+                        self.summary_writer_play.flush()
 
-                    self.summary_writer_train.flush()
                 if self.name == 'worker_0':
                     sess.run(self.increment)
                 episode_count += 1
-
-    def work_no_training(self, sess):
-        episode_count = sess.run(self.global_episodes)
-        total_steps = 0
-        print("Starting worker " + str(self.number))
-        with sess.as_default(), sess.graph.as_default():
-            sess.run(self.update_local_ops)
-            episode_buffer = []
-            episode_values = []
-            episode_frames = []
-            episode_reward = 0
-            episode_step_count = 0
-
-            self.env.new_episode()
-            s = self.env.get_state().screen_buffer  # returns screen_buffer prop of the GameState object
-            episode_frames.append(s)
-            s = process_frame(s)
-            rnn_state = self.local_AC.state_init
-
-            while not self.env.is_episode_finished():
-                # Take an action using probabilities from policy network output.
-                a_dist, v, rnn_state = sess.run(
-                    [self.local_AC.policy, self.local_AC.value, self.local_AC.state_out],
-                    feed_dict={self.local_AC.inputs: [s],
-                               self.local_AC.state_in[0]: rnn_state[0],
-                               self.local_AC.state_in[1]: rnn_state[1]})
-                a = np.random.choice(a_dist[0], p=a_dist[0])  # a random sample is generated given the probabilities
-                a = np.argmax(a_dist == a)
-                # make action takes a list of button states and returns a reward - the result of making the action:
-                r = self.env.make_action(self.actions[a]) / 100.0
-                is_episode_finished = self.env.is_episode_finished()  # True of False output
-                if not is_episode_finished:
-                    s1 = self.env.get_state().screen_buffer
-                    episode_frames.append(s1)
-                    s1 = process_frame(s1)
-                else:
-                    s1 = s
-
-                episode_buffer.append([s, a, r, s1, is_episode_finished, v[0, 0]])
-                episode_values.append(v[0, 0])
-
-                episode_reward += r
-                s = s1
-                total_steps += 1
-                episode_step_count += 1
-
-                if is_episode_finished:
-                    break
-
-            self.episode_rewards.append(episode_reward)
-            self.episode_lengths.append(episode_step_count)
-            self.episode_mean_values.append(np.mean(episode_values))
-
-            # Periodically save summary statistics for tensor board
-            if episode_count % 5 == 0 and episode_count != 0:  # every 5 episodes
-                mean_reward = np.mean(self.episode_rewards[-5:])  # mean over the last 5 elements of episode Rs
-                mean_length = np.mean(self.episode_lengths[-5:])  # mean nr of steps per episode
-                mean_value = np.mean(self.episode_mean_values[-5:])
-                summary = tf.Summary()
-
-                summary.value.add(tag='Performance/Reward', simple_value=float(mean_reward))
-                summary.value.add(tag='Performance/Length', simple_value=float(mean_length))
-                summary.value.add(tag='Performance/Value', simple_value=float(mean_value))
-                self.summary_writer_play.add_summary(summary, episode_count)
-
-                self.summary_writer_play.flush()
-            if self.name == 'worker_0':
-                sess.run(self.increment)
-            episode_count += 1
 
 
 def initialize_variables(saver, sess, load_model):
@@ -374,7 +309,7 @@ def initialize_variables(saver, sess, load_model):
         sess.run(tf.global_variables_initializer())
 
 
-def play_training():
+def play_training(training=True, load_model=True):
     max_episode_length = 300
     gamma = .99  # discount rate for advantage estimation and reward discounting
 
@@ -382,43 +317,29 @@ def play_training():
         global_episodes = tf.Variable(0, dtype=tf.int32, name='global_episodes', trainable=False)
         trainer = tf.train.AdamOptimizer(learning_rate=1e-4)  # trainer for the Workers
         master_network = AC_Network(s_size, a_size, 'global', None)  # Generate global network with trainer None
-        num_workers = multiprocessing.cpu_count()  # Set workers at number of available CPU threads
-        workers = []
 
-        # Create worker classes
-        for i in range(num_workers):
+        if training:
+            num_workers = multiprocessing.cpu_count()  # Set workers at number of available CPU threads
+        else:
+            num_workers = 1
+
+        workers = []
+        for i in range(num_workers):  # Create worker classes
             workers.append(Worker(DoomGame(), i, s_size, a_size, trainer, model_path, global_episodes))
         saver = tf.train.Saver()
 
     with tf.Session() as sess:
         coord = tf.train.Coordinator()
-        initialize_variables(saver, sess, True)
-
+        initialize_variables(saver, sess, load_model)
         # Asynchronous magic happens: start the "work" process for each worker in a separate thread.
         worker_threads = []
         for worker in workers:
-            worker_work = lambda: worker.work(max_episode_length, gamma, sess, coord, saver)
+            worker_work = lambda: worker.work(max_episode_length, gamma, sess, coord, saver, training)
             t = threading.Thread(target=worker_work)
             t.start()
-            sleep(0.5)
+            sleep(1.0)
             worker_threads.append(t)
         coord.join(worker_threads)  # waits until the specified threads have stopped.
-
-
-def play_trained_agent():
-    episodes_to_watch = 10
-    global_episodes = tf.Variable(0, dtype=tf.int32, name='global_episodes', trainable=False)
-    trainer = tf.train.AdamOptimizer(learning_rate=1e-4)  # trainer for the Workers
-    master_network = AC_Network(s_size, a_size, 'global', None)  # Generate global network with trainer None
-    saver = tf.train.Saver()
-    # Create worker classes
-    worker = Worker(DoomGame(), 0, s_size, a_size, trainer, model_path, global_episodes)
-    with tf.Session() as sess:
-        initialize_variables(saver, sess, True)
-        for _ in range(episodes_to_watch):
-            worker.work_no_training(sess)
-
-            sleep(1.0)  # Sleep between episodes
 
 
 if __name__ == "__main__":
@@ -435,9 +356,9 @@ if __name__ == "__main__":
     if not os.path.exists('./frames'):
         os.makedirs('./frames')
 
-    if len(sys.argv) == 1:
-        play_training()
-    elif sys.argv[1] == "1":
-        play_training()
+    if len(sys.argv) == 1:  # run in in PyCharm, adjust True/ False
+        play_training(training=True, load_model=True)
+    elif sys.argv[1] == "1":  # lunch in Terminal and specify 0 or 1 as arguments
+        play_training(training=True, load_model=True)
     elif sys.argv[1] == "0":
-        play_trained_agent()
+        play_training(training=False, load_model=True)
