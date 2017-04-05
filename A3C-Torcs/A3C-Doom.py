@@ -60,7 +60,7 @@ def setup_env(game):
     game.add_available_game_variable(GameVariable.POSITION_Y)
     game.set_episode_timeout(300)
     game.set_episode_start_time(10)
-    game.set_window_visible(True)
+    game.set_window_visible(False)
     game.set_sound_enabled(False)
     game.set_living_reward(-1)
     game.set_mode(Mode.PLAYER)
@@ -365,20 +365,6 @@ class Worker:
             episode_count += 1
 
 
-s_size = 7056  # Observations are greyscale frames of 84 * 84 * 1
-a_size = 3  # Agent can move Left, Right, or Fire
-model_path = './model'
-
-tf.reset_default_graph()
-
-if not os.path.exists(model_path):
-    os.makedirs(model_path)
-
-# Create a directory to save episode playback gifs to
-if not os.path.exists('./frames'):
-    os.makedirs('./frames')
-
-
 def initialize_variables(saver, sess, load_model):
     if load_model:
         print('Loading Model...')
@@ -436,6 +422,19 @@ def play_trained_agent():
 
 
 if __name__ == "__main__":
+    s_size = 7056  # Observations are greyscale frames of 84 * 84 * 1
+    a_size = 3  # Agent can move Left, Right, or Fire
+    model_path = './model'
+
+    tf.reset_default_graph()
+
+    if not os.path.exists(model_path):
+        os.makedirs(model_path)
+
+    # Create a directory to save episode playback gifs to
+    if not os.path.exists('./frames'):
+        os.makedirs('./frames')
+
     if len(sys.argv) == 1:
         play_training()
     elif sys.argv[1] == "1":
