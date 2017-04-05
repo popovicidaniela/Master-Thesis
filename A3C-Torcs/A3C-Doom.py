@@ -42,7 +42,7 @@ def normalized_columns_initializer(std=1.0):
     return _initializer
 
 
-class AC_Network():
+class AC_Network:
     def __init__(self, s_size, a_size, scope, trainer):
         with tf.variable_scope(scope):
             # Input and visual encoding layers
@@ -110,7 +110,7 @@ class AC_Network():
                 self.apply_grads = trainer.apply_gradients(zip(grads, global_vars))
 
 
-class Worker():
+class Worker:
     def __init__(self, game, name, s_size, a_size, trainer, model_path, global_episodes):
         self.name = "worker_" + str(name)
         self.number = name
@@ -181,13 +181,13 @@ class Worker():
                      self.local_AC.state_in[0]: rnn_state[0],
                      self.local_AC.state_in[1]: rnn_state[1]}
         v_l, p_l, e_l, loss_f, g_n, v_n, _ = sess.run([self.local_AC.value_loss,
-                                               self.local_AC.policy_loss,
-                                               self.local_AC.entropy,
-                                               self.local_AC.loss,
-                                               self.local_AC.grad_norms,
-                                               self.local_AC.var_norms,
-                                               self.local_AC.apply_grads],
-                                              feed_dict=feed_dict)
+                                                       self.local_AC.policy_loss,
+                                                       self.local_AC.entropy,
+                                                       self.local_AC.loss,
+                                                       self.local_AC.grad_norms,
+                                                       self.local_AC.var_norms,
+                                                       self.local_AC.apply_grads],
+                                                      feed_dict=feed_dict)
         return v_l / len(rollout), p_l / len(rollout), e_l / len(rollout), loss_f / len(rollout), g_n, v_n
 
     def work(self, max_episode_length, gamma, sess, coord, saver):
@@ -276,9 +276,9 @@ class Worker():
                     mean_value = np.mean(self.episode_mean_values[-5:])
                     summary = tf.Summary()
 
-                    summary.value.add(tag='Perf/Reward', simple_value=float(mean_reward))
-                    summary.value.add(tag='Perf/Length', simple_value=float(mean_length))
-                    summary.value.add(tag='Perf/Value', simple_value=float(mean_value))
+                    summary.value.add(tag='Performance/Reward', simple_value=float(mean_reward))
+                    summary.value.add(tag='Performance/Length', simple_value=float(mean_length))
+                    summary.value.add(tag='Performance/Value', simple_value=float(mean_value))
                     summary.value.add(tag='Losses/Value Loss', simple_value=float(v_l))
                     summary.value.add(tag='Losses/Policy Loss', simple_value=float(p_l))
                     summary.value.add(tag='Losses/Entropy', simple_value=float(e_l))
@@ -345,15 +345,15 @@ class Worker():
             self.episode_mean_values.append(np.mean(episode_values))
 
             # Periodically save summary statistics for tensor board
-            if episode_count % 5 == 0 and episode_count != 0:
+            if episode_count % 5 == 0 and episode_count != 0:  # every 5 episodes
                 mean_reward = np.mean(self.episode_rewards[-5:])  # mean over the last 5 elements of episode Rs
-                mean_length = np.mean(self.episode_lengths[-5:])
+                mean_length = np.mean(self.episode_lengths[-5:])  # mean nr of steps per episode
                 mean_value = np.mean(self.episode_mean_values[-5:])
                 summary = tf.Summary()
 
-                summary.value.add(tag='Perf/Reward', simple_value=float(mean_reward))
-                summary.value.add(tag='Perf/Length', simple_value=float(mean_length))
-                summary.value.add(tag='Perf/Value', simple_value=float(mean_value))
+                summary.value.add(tag='Performance/Reward', simple_value=float(mean_reward))
+                summary.value.add(tag='Performance/Length', simple_value=float(mean_length))
+                summary.value.add(tag='Performance/Value', simple_value=float(mean_value))
                 self.summary_writer_play.add_summary(summary, episode_count)
 
                 self.summary_writer_play.flush()
@@ -362,49 +362,50 @@ class Worker():
             episode_count += 1
 
 
-def play():
+s_size = 7056  # Observations are greyscale frames of 84 * 84 * 1
+a_size = 3  # Agent can move Left, Right, or Fire
+model_path = './model'
+
+tf.reset_default_graph()
+
+if not os.path.exists(model_path):
+    os.makedirs(model_path)
+
+# Create a directory to save episode playback gifs to
+if not os.path.exists('./frames'):
+    os.makedirs('./frames')
+
+
+def initialize_variables(saver, sess, load_model):
+    if load_model:
+        print('Loading Model...')
+        ckpt = tf.train.get_checkpoint_state(model_path)
+        saver.restore(sess, ckpt.model_checkpoint_path)
+    else:
+        sess.run(tf.global_variables_initializer())
+
+
+def play_training():
     max_episode_length = 300
     gamma = .99  # discount rate for advantage estimation and reward discounting
-    s_size = 7056  # Observations are greyscale frames of 84 * 84 * 1
-    a_size = 3  # Agent can move Left, Right, or Fire
-    load_model = True  # True for starting from the previous params values
-    model_path = './model'
-
-    tf.reset_default_graph()
-
-    if not os.path.exists(model_path):
-        os.makedirs(model_path)
-
-    # Create a directory to save episode playback gifs to
-    if not os.path.exists('./frames'):
-        os.makedirs('./frames')
 
     with tf.device("/cpu:0"):
         global_episodes = tf.Variable(0, dtype=tf.int32, name='global_episodes', trainable=False)
         trainer = tf.train.AdamOptimizer(learning_rate=1e-4)  # trainer for the Workers
         master_network = AC_Network(s_size, a_size, 'global', None)  # Generate global network with trainer None
-        if sys.argv[1] == "1":
-            num_workers = multiprocessing.cpu_count()  # Set workers at number of available CPU threads
-            load_model = False
-        else:
-            num_workers = 1  # 1 for using 1 CPU and run the trained model
+        num_workers = multiprocessing.cpu_count()  # Set workers at number of available CPU threads
         workers = []
+
         # Create worker classes
         for i in range(num_workers):
             workers.append(Worker(DoomGame(), i, s_size, a_size, trainer, model_path, global_episodes))
-        saver = tf.train.Saver(max_to_keep=5)
+        saver = tf.train.Saver()
 
     with tf.Session() as sess:
         coord = tf.train.Coordinator()
-        if load_model:
-            print('Loading Model...')
-            ckpt = tf.train.get_checkpoint_state(model_path)
-            saver.restore(sess, ckpt.model_checkpoint_path)
-        else:
-            sess.run(tf.global_variables_initializer())
+        initialize_variables(saver, sess, True)
 
-        # This is where the asynchronous magic happens.
-        # Start the "work" process for each worker in a separate thread.
+        # Asynchronous magic happens: start the "work" process for each worker in a separate thread.
         worker_threads = []
         for worker in workers:
             worker_work = lambda: worker.work(max_episode_length, gamma, sess, coord, saver)
@@ -414,5 +415,27 @@ def play():
             worker_threads.append(t)
         coord.join(worker_threads)  # waits until the specified threads have stopped.
 
+
+def play_trained_agent():
+    episodes_to_watch = 10
+    global_episodes = tf.Variable(0, dtype=tf.int32, name='global_episodes', trainable=False)
+    trainer = tf.train.AdamOptimizer(learning_rate=1e-4)  # trainer for the Workers
+    master_network = AC_Network(s_size, a_size, 'global', None)  # Generate global network with trainer None
+    saver = tf.train.Saver()
+    # Create worker classes
+    worker = Worker(DoomGame(), 0, s_size, a_size, trainer, model_path, global_episodes)
+    with tf.Session() as sess:
+        initialize_variables(saver, sess, True)
+        for _ in range(episodes_to_watch):
+            worker.work_no_training(sess)
+
+            sleep(1.0)  # Sleep between episodes
+
+
 if __name__ == "__main__":
-    play()
+    if len(sys.argv) == 1:
+        play_training()
+    elif sys.argv[1] == "1":
+        play_training()
+    elif sys.argv[1] == "0":
+        play_trained_agent()
