@@ -312,7 +312,7 @@ def initialize_variables(saver, sess, load_model):
 def play_training(training=True, load_model=True):
     with tf.device("/cpu:0"):
         global_episodes = tf.Variable(0, dtype=tf.int32, name='global_episodes', trainable=False)
-        trainer = tf.train.AdamOptimizer(learning_rate=1e-4)  # trainer for the Workers
+        trainer = tf.train.RMSPropOptimizer(learning_rate=1e-4)  # trainer for the Workers
         master_network = AC_Network(s_size, a_size, 'global', None)  # Generate global network with trainer None
 
         if training:
