@@ -429,7 +429,7 @@ def play_training(training=True, load_model=True):
 
         workers = []
         for i in range(num_workers):  # Create worker classes
-            workers.append(Worker(Worker(TorcsEnv(vision=True, throttle=True, gear_change=False, port=3101+i), i, s_size, a_size, trainer, model_path, global_episodes))
+            workers.append(Worker(TorcsEnv(vision=True, throttle=True, gear_change=False, port=3101+i), i, s_size, a_size, trainer, model_path, global_episodes))
         saver = tf.train.Saver()
 
     with tf.Session() as sess:
