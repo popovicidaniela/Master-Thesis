@@ -5,6 +5,7 @@ import sys
 from helper import *
 from vizdoom import *
 from time import sleep
+from gym_torcs import TorcsEnv
 
 
 # Copies one set of variables to another.
@@ -21,9 +22,12 @@ def update_target_graph(from_scope, to_scope):
 
 # Processes Doom screen image to produce cropped and resized image.
 def process_frame(frame):
-    s = frame[10:-10, 30:-30]
-    s = scipy.misc.imresize(s, [84, 84])
-    s = np.reshape(s, [np.prod(s.shape)]) / 255.0
+    # s = frame[10:-10, 30:-30] #Get the frame quadratic 120 - 20 and 160 - 60
+    # s = scipy.misc.imresize(s, [84, 84]) #resize 100x100 to 84x84
+    # s = np.reshape(s, [np.prod(s.shape)]) / 255.0 #make it one tuple size 7056 and makes values between 0-1 by dividing 255
+    r, g, b = frame[:, 0], frame[:, 1], frame[:, 2]  # find r,g,b values
+    img_gray = 0.2989 * r + 0.5870 * g + 0.1140 * b  # make rgb to grayscale
+    s = np.reshape(img_gray, [np.prod(img_gray.shape)]) / 255.0
     return s
 
 
@@ -208,8 +212,10 @@ class Worker:
         self.local_AC = AC_Network(s_size, a_size, self.name, trainer)
         self.update_local_ops = update_target_graph('global', self.name)
         # Doom setup
-        self.env = setup_env(game)
-        self.actions = np.identity(a_size, dtype=bool).tolist()
+        self.env = game
+        #self.actions = np.identity(a_size, dtype=bool).tolist()
+        #actions for torcs
+        self.actions = self.actions = np.array([[0.5, 0.18], [0, 0.18]])  # for action turn a bit right or a bit left
         # End Doom setup
 
     def train(self, rollout, sess, gamma, bootstrap_value):
@@ -259,15 +265,37 @@ class Worker:
                 episode_frames = []
                 episode_reward = 0
                 episode_step_count = 0
+                d = False
 
-                self.env.new_episode()
-                s = self.env.get_state().screen_buffer  # returns screen_buffer prop of the GameState object
-                episode_frames.append(s)
+                # self.env.new_episode()
+                if np.mod(episode_count, 10) == 0:
+                    # Sometimes you need to relaunch TORCS because of the memory leak error
+                    ob = self.env.reset(relaunch=True)
+                else:
+                    ob = self.env.reset(relaunch=False)
+
+                #changing to torcs
+                # s = self.env.get_state().screen_buffer
+                s = ob.img
+
+                # For creating gifs
+                img = np.ndarray((64, 64, 3))
+                for z in range(3):
+                    img[:, :, z] = 255 - s[:, z].reshape((64, 64))
+                r, g, b = img[:, :, 0], img[:, :, 1], img[:, :, 2]
+                img_gray = 0.2989 * r + 0.5870 * g + 0.1140 * b
+
+                # For state
+                episode_frames.append(img_gray)
                 s = process_frame(s)
+                # episode_frames.append(s)
                 rnn_state = self.local_AC.state_init
+
+
                 a_t = np.zeros([1, a_size])
 
-                while not self.env.is_episode_finished():
+                #while not self.env.is_episode_finished():
+                while d == False:
                     # Take an action using probabilities from policy network output.
                     if not self.continuous:
                         a_dist, v, rnn_state = sess.run(
@@ -278,7 +306,7 @@ class Worker:
                         a_t = np.random.choice(a_dist[0], p=a_dist[0])  # a random sample is generated given the probabs
                         a_t = np.argmax(a_dist == a_t)
                         # make action takes a list of button states and returns a reward - the result of making action:
-                        r = self.env.make_action(self.actions[a]) / 100.0
+                        ob, r, d, info = self.env.step(self.actions[a_t])  # ob = observations, r = reward, d = done (episode finish, info = ?
                     else:
                         steer, brake, accelerate, v, rnn_state = sess.run(
                             [self.local_AC.steer, self.local_AC.brake, self.local_AC.accelerate, self.local_AC.value, self.local_AC.state_out],
@@ -288,13 +316,25 @@ class Worker:
                         a_t[0][0] = steer
                         a_t[0][1] = accelerate
                         a_t[0][2] = brake
-                        s1, r, done, info = self.env.step(a_t[0])
+                        ob, r, d, info = self.env.step(self.actions[a])  # ob = observations, r = reward, d = done (episode finish, info = ?
 
-                    is_episode_finished = self.env.is_episode_finished()
-                    if not is_episode_finished:
-                        s1 = self.env.get_state().screen_buffer
-                        episode_frames.append(s1)
+                    #is_episode_finished = self.env.is_episode_finished()
+                    #if not is_episode_finished:
+                    if d == False:
+                        # s1 = self.env.get_state().screen_buffer
+                        s1 = ob.img  # Changed for torcs
+
+                        # For creating gifs
+                        img1 = np.ndarray((64, 64, 3))
+                        for z1 in range(3):
+                            img1[:, :, z] = 255 - s1[:, z].reshape((64, 64))
+                        r1, g1, b1 = img1[:, :, 0], img1[:, :, 1], img1[:, :, 2]
+                        img_gray1 = 0.2989 * r1 + 0.5870 * g1 + 0.1140 * b1
+                        episode_frames.append(img_gray1)
+
+                        # for state
                         s1 = process_frame(s1)
+                        # episode_frames.append(s1)
                     else:
                         s1 = s
 
@@ -389,7 +429,7 @@ def play_training(training=True, load_model=True):
 
         workers = []
         for i in range(num_workers):  # Create worker classes
-            workers.append(Worker(DoomGame(), i, s_size, a_size, trainer, model_path, global_episodes))
+            workers.append(Worker(Worker(TorcsEnv(vision=True, throttle=True, gear_change=False, port=3101+i), i, s_size, a_size, trainer, model_path, global_episodes))
         saver = tf.train.Saver()
 
     with tf.Session() as sess:
