@@ -77,7 +77,7 @@ class AC_Network:
         with tf.variable_scope(scope):
             # Input and visual encoding layers
             self.inputs = tf.placeholder(shape=[None, s_size], dtype=tf.float32)
-            self.imageIn = tf.reshape(self.inputs, shape=[-1, 84, 84, 1])
+            self.imageIn = tf.reshape(self.inputs, shape=[-1, 64, 64, 1])
             self.conv1 = slim.conv2d(activation_fn=tf.nn.elu,
                                      inputs=self.imageIn, num_outputs=16,
                                      kernel_size=[8, 8], stride=[4, 4], padding='VALID')
@@ -338,7 +338,7 @@ class Worker:
                     else:
                         s1 = s
 
-                    episode_buffer.append([s, a_t, r, s1, is_episode_finished, v[0, 0]])
+                    episode_buffer.append([s, a_t, r, s1, d, v[0, 0]])
                     episode_values.append(v[0, 0])
 
                     episode_reward += r
@@ -349,7 +349,7 @@ class Worker:
                     # If the episode hasn't ended, but the experience buffer is full, then we
                     # make an update step using that experience rollout.
                     if training and len(
-                            episode_buffer) == 30 and is_episode_finished is not True and episode_step_count != max_episode_length - 1:
+                            episode_buffer) == 30 and d is not True and episode_step_count != max_episode_length - 1:
                         # Since we don't know what the true final return is, we "bootstrap" from our current
                         # value estimation
                         v1 = sess.run(self.local_AC.value,
@@ -359,7 +359,7 @@ class Worker:
                         v_l, p_l, e_l, loss_f, g_n, v_n = self.train(episode_buffer, sess, gamma, v1)
                         episode_buffer = []
                         sess.run(self.update_local_ops)
-                    if is_episode_finished:
+                    if d == True:
                         break
 
                 self.episode_rewards.append(episode_reward)
@@ -424,12 +424,13 @@ def play_training(training=True, load_model=True):
 
         if training:
             num_workers = multiprocessing.cpu_count()  # Set workers at number of available CPU threads
+            #num_workers = 1# Set workers at number of available CPU threads
         else:
             num_workers = 1
 
         workers = []
         for i in range(num_workers):  # Create worker classes
-            workers.append(Worker(Worker(TorcsEnv(vision=True, throttle=True, gear_change=False, port=3101+i), i, s_size, a_size, trainer, model_path, global_episodes))
+            workers.append(Worker(TorcsEnv(vision=True, throttle=True, gear_change=False, port=3101+i), i, s_size, a_size, trainer, model_path, global_episodes))
         saver = tf.train.Saver()
 
     with tf.Session() as sess:
@@ -449,8 +450,8 @@ def play_training(training=True, load_model=True):
 if __name__ == "__main__":
     max_episode_length = 300
     gamma = .99  # discount rate for advantage estimation and reward discounting
-    s_size = 7056  # Observations are greyscale frames of 84 * 84 * 1
-    a_size = 3  # Agent can move Left, Right, or Fire
+    s_size = 4096  # Observations are greyscale frames of 84 * 84 * 1
+    a_size = 2  # Agent can move Left, Right, or Fire
     model_path = './model'
 
     tf.reset_default_graph()
@@ -465,6 +466,6 @@ if __name__ == "__main__":
     if len(sys.argv) == 1:  # run in PyCharm, adjust True/ False
         play_training(training=False, load_model=True)
     elif sys.argv[1] == "1":  # lunch in Terminal and specify 0 or 1 as arguments
-        play_training(training=True, load_model=True)
+        play_training(training=True, load_model=False)
     elif sys.argv[1] == "0":
         play_training(training=False, load_model=True)
