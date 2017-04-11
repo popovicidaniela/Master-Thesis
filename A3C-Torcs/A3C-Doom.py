@@ -73,7 +73,7 @@ def setup_env(game):
 
 
 class AC_Network:
-    def __init__(self, s_size, a_size, scope, trainer, continuous=False):
+    def __init__(self, s_size, a_size, scope, trainer, continuous=True):
         with tf.variable_scope(scope):
             # Input and visual encoding layers
             self.inputs = tf.placeholder(shape=[None, s_size], dtype=tf.float32)
@@ -423,8 +423,8 @@ def play_training(training=True, load_model=True):
         master_network = AC_Network(s_size, a_size, 'global', None)  # Generate global network with trainer None
 
         if training:
-            num_workers = multiprocessing.cpu_count()  # Set workers at number of available CPU threads
-            #num_workers = 1# Set workers at number of available CPU threads
+            #num_workers = multiprocessing.cpu_count()  # Set workers at number of available CPU threads
+            num_workers = 4# Set workers 
         else:
             num_workers = 1
 
@@ -442,7 +442,7 @@ def play_training(training=True, load_model=True):
             worker_work = lambda: worker.work(max_episode_length, gamma, sess, coord, saver, training)
             t = threading.Thread(target=worker_work)
             t.start()
-            sleep(1.0)
+            sleep(0.5)
             worker_threads.append(t)
         coord.join(worker_threads)  # waits until the specified threads have stopped.
 
