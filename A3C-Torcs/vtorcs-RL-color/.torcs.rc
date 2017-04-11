@@ -1,0 +1,2 @@
+TORCS_BASE = /home/dennis/gym_torcs_multi/vtorcs-RL-color
+MAKE_DEFAULT = /home/dennis/gym_torcs_multi/vtorcs-RL-color/Make-default.mk
