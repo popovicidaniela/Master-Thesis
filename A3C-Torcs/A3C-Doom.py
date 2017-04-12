@@ -46,34 +46,8 @@ def normalized_columns_initializer(std=1.0):
     return _initializer
 
 
-def setup_env(game):
-    game.set_doom_scenario_path("basic.wad")  # This corresponds to the simple task we will pose our agent
-    game.set_doom_map("map01")
-    game.set_screen_resolution(ScreenResolution.RES_160X120)
-    game.set_screen_format(ScreenFormat.GRAY8)
-    game.set_render_hud(False)
-    game.set_render_crosshair(False)
-    game.set_render_weapon(True)
-    game.set_render_decals(False)
-    game.set_render_particles(False)
-    game.add_available_button(Button.MOVE_LEFT)
-    game.add_available_button(Button.MOVE_RIGHT)
-    game.add_available_button(Button.ATTACK)
-    game.add_available_game_variable(GameVariable.AMMO2)
-    game.add_available_game_variable(GameVariable.POSITION_X)
-    game.add_available_game_variable(GameVariable.POSITION_Y)
-    game.set_episode_timeout(300)
-    game.set_episode_start_time(10)
-    game.set_window_visible(False)
-    game.set_sound_enabled(False)
-    game.set_living_reward(-1)
-    game.set_mode(Mode.PLAYER)
-    game.init()
-    return game
-
-
 class AC_Network:
-    def __init__(self, s_size, a_size, scope, trainer, continuous=True):
+    def __init__(self, s_size, a_size, scope, trainer, continuous=False):
         with tf.variable_scope(scope):
             # Input and visual encoding layers
             self.inputs = tf.placeholder(shape=[None, s_size], dtype=tf.float32)
@@ -112,39 +86,34 @@ class AC_Network:
                                                             biases_initializer=None)
             else:
                 self.steering_variance = slim.fully_connected(rnn_out, 1,
-                                                              activation_fn=tf.nn.softplus + 1e-4,
-                                                              weights_initializer=tf.zeros_initializer,
+                                                              activation_fn=tf.nn.softplus,
+                                                              weights_initializer=normalized_columns_initializer(1.0),
                                                               biases_initializer=None)
                 self.steering_mean = slim.fully_connected(rnn_out, 1,
                                                           activation_fn=None,
-                                                          weights_initializer=tf.zeros_initializer,
+                                                          weights_initializer=normalized_columns_initializer(1.0),
                                                           biases_initializer=None)
                 self.steering_normal_dist = tf.contrib.distributions.Normal(self.steering_mean, self.steering_variance)
-                self.steer = self.steering_normal_dist._sample_n(1)
-                self.steer = tf.clip_by_value(self.steer, -1, 1)
                 self.braking_variance = slim.fully_connected(rnn_out, 1,
-                                                             activation_fn=tf.nn.softplus + 1e-4,
-                                                             weights_initializer=tf.zeros_initializer,
+                                                             activation_fn=tf.nn.softplus,
+                                                             weights_initializer=normalized_columns_initializer(1.0),
                                                              biases_initializer=None)
                 self.braking_mean = slim.fully_connected(rnn_out, 1,
                                                          activation_fn=None,
-                                                         weights_initializer=tf.zeros_initializer,
+                                                         weights_initializer=normalized_columns_initializer(1.0),
                                                          biases_initializer=None)
                 self.braking_normal_dist = tf.contrib.distributions.Normal(self.braking_mean, self.braking_variance)
-                self.brake = self.braking_normal_dist._sample_n(1)
-                self.brake = tf.clip_by_value(self.steer, 0, 1)
                 self.acceleration_variance = slim.fully_connected(rnn_out, 1,
-                                                                  activation_fn=tf.nn.softplus + 1e-4,
-                                                                  weights_initializer=tf.zeros_initializer,
+                                                                  activation_fn=tf.nn.softplus,
+                                                                  weights_initializer=normalized_columns_initializer(
+                                                                      1.0),
                                                                   biases_initializer=None)
                 self.acceleration_mean = slim.fully_connected(rnn_out, 1,
                                                               activation_fn=None,
-                                                              weights_initializer=tf.zeros_initializer,
+                                                              weights_initializer=normalized_columns_initializer(1.0),
                                                               biases_initializer=None)
                 self.acceleration_normal_dist = tf.contrib.distributions.Normal(self.acceleration_mean,
                                                                                 self.acceleration_variance)
-                self.accelerate = self.acceleration_normal_dist._sample_n(1)
-                self.accelerate = tf.clip_by_value(self.accelerate, 0, 1)
             self.value = slim.fully_connected(rnn_out, 1,
                                               activation_fn=None,
                                               weights_initializer=normalized_columns_initializer(1.0),
@@ -162,10 +131,9 @@ class AC_Network:
                     self.entropy = - tf.reduce_sum(self.discrete_policy * tf.log(self.discrete_policy))
                     self.policy_loss = -tf.reduce_sum(tf.log(self.responsible_outputs) * self.advantages)
                 else:
-                    self.actions = tf.placeholder(shape=[None], dtype=tf.float32)
-                    self.steer = self.actions[0][0]
-                    self.brake = self.actions[0][2]
-                    self.accelerate = self.actions[0][1]
+                    self.steer = tf.placeholder(dtype=tf.float32)
+                    self.brake = tf.placeholder(dtype=tf.float32)
+                    self.accelerate = tf.placeholder(dtype=tf.float32)
                     self.steering_entropy = - tf.reduce_sum(self.steering_normal_dist.entropy())
                     self.braking_entropy = - tf.reduce_sum(self.braking_normal_dist.entropy())
                     self.acceleration_entropy = - tf.reduce_sum(self.acceleration_normal_dist.entropy())
@@ -209,13 +177,18 @@ class Worker:
         self.summary_writer_play = tf.summary.FileWriter("play_" + str(self.number))
 
         # Create the local copy of the network and the tensorflow op to copy global params to local network
-        self.local_AC = AC_Network(s_size, a_size, self.name, trainer)
+        self.local_AC = AC_Network(s_size, a_size, self.name, trainer, continuous)
         self.update_local_ops = update_target_graph('global', self.name)
         # Doom setup
         self.env = game
-        #self.actions = np.identity(a_size, dtype=bool).tolist()
-        #actions for torcs
-        self.actions = self.actions = np.array([[0.5, 0.18], [0, 0.18]])  # for action turn a bit right or a bit left
+        # self.
+        # actions for torcs
+        if not continuous:
+            self.actions = np.array([[0.5, 0.18], [0, 0.18], [0, 0.18]])  # for action turn a bit right or a bit left
+        else:
+            self.steer = 0.
+            self.accelerate = 0.
+            self.brake = 0.
         # End Doom setup
 
     def train(self, rollout, sess, gamma, bootstrap_value):
@@ -237,12 +210,22 @@ class Worker:
         # Update the global network using gradients from loss
         # Generate network statistics to periodically save
         rnn_state = self.local_AC.state_init
-        feed_dict = {self.local_AC.target_v: discounted_rewards,
-                     self.local_AC.inputs: np.vstack(observations),
-                     self.local_AC.actions: actions,
-                     self.local_AC.advantages: advantages,
-                     self.local_AC.state_in[0]: rnn_state[0],
-                     self.local_AC.state_in[1]: rnn_state[1]}
+        if not self.continuous:
+            feed_dict = {self.local_AC.target_v: discounted_rewards,
+                         self.local_AC.inputs: np.vstack(observations),
+                         self.local_AC.actions: actions,
+                         self.local_AC.advantages: advantages,
+                         self.local_AC.state_in[0]: rnn_state[0],
+                         self.local_AC.state_in[1]: rnn_state[1]}
+        else:
+            feed_dict = {self.local_AC.target_v: discounted_rewards,
+                         self.local_AC.inputs: np.vstack(observations),
+                         self.local_AC.steer: actions[:, 0],
+                         self.local_AC.accelerate: actions[:, 1],
+                         self.local_AC.brake: actions[:, 2],
+                         self.local_AC.advantages: advantages,
+                         self.local_AC.state_in[0]: rnn_state[0],
+                         self.local_AC.state_in[1]: rnn_state[1]}
         v_l, p_l, e_l, loss_f, g_n, v_n, _ = sess.run([self.local_AC.value_loss,
                                                        self.local_AC.policy_loss,
                                                        self.local_AC.entropy,
@@ -274,7 +257,7 @@ class Worker:
                 else:
                     ob = self.env.reset(relaunch=False)
 
-                #changing to torcs
+                # changing to torcs
                 # s = self.env.get_state().screen_buffer
                 s = ob.img
 
@@ -291,11 +274,8 @@ class Worker:
                 # episode_frames.append(s)
                 rnn_state = self.local_AC.state_init
 
-
-                a_t = np.zeros([1, a_size])
-
-                #while not self.env.is_episode_finished():
-                while d == False:
+                # while not self.env.is_episode_finished():
+                while not d:
                     # Take an action using probabilities from policy network output.
                     if not self.continuous:
                         a_dist, v, rnn_state = sess.run(
@@ -306,21 +286,40 @@ class Worker:
                         a_t = np.random.choice(a_dist[0], p=a_dist[0])  # a random sample is generated given the probabs
                         a_t = np.argmax(a_dist == a_t)
                         # make action takes a list of button states and returns a reward - the result of making action:
-                        ob, r, d, info = self.env.step(self.actions[a_t])  # ob = observations, r = reward, d = done (episode finish, info = ?
+                        ob, r, d, info = self.env.step(self.actions[a_t])
+                        # ob = observations, r = reward, d = done (episode finish, info = ?
                     else:
-                        steer, brake, accelerate, v, rnn_state = sess.run(
-                            [self.local_AC.steer, self.local_AC.brake, self.local_AC.accelerate, self.local_AC.value, self.local_AC.state_out],
+                        steer_var, steer_mean, acceleration_var, acceleration_mean, braking_var, braking_mean, v, rnn_state = sess.run(
+                            [self.local_AC.steering_variance,
+                             self.local_AC.steering_mean,
+                             self.local_AC.acceleration_variance,
+                             self.local_AC.acceleration_mean,
+                             self.local_AC.braking_variance,
+                             self.local_AC.braking_mean,
+                             self.local_AC.value,
+                             self.local_AC.state_out],
                             feed_dict={self.local_AC.inputs: [s],
                                        self.local_AC.state_in[0]: rnn_state[0],
                                        self.local_AC.state_in[1]: rnn_state[1]})
-                        a_t[0][0] = steer
-                        a_t[0][1] = accelerate
-                        a_t[0][2] = brake
-                        ob, r, d, info = self.env.step(self.actions[a])  # ob = observations, r = reward, d = done (episode finish, info = ?
+                        steering_normal_dist = tf.contrib.distributions.Normal(steer_mean, steer_var)
+                        steer = steering_normal_dist._sample_n(1)
+                        steer = tf.clip_by_value(steer, -1, 1)
+                        steer = sess.run(tf.squeeze(steer))
+                        acceleration_normal_dist = tf.contrib.distributions.Normal(acceleration_mean, acceleration_var)
+                        acceleration = acceleration_normal_dist._sample_n(1)
+                        accelerate = tf.clip_by_value(acceleration, -1, 1)
+                        accelerate = sess.run(tf.squeeze(accelerate))
+                        braking_normal_dist = tf.contrib.distributions.Normal(braking_mean, braking_var)
+                        brake = braking_normal_dist._sample_n(1)
+                        brake = tf.clip_by_value(brake, -1, 1)
+                        brake = sess.run(tf.squeeze(brake))
+                        a_t = [steer, accelerate, brake]
+                        ob, r, d, info = self.env.step(a_t)
+                        # ob = observations, r = reward, d = done (episode finish, info = ?
 
-                    #is_episode_finished = self.env.is_episode_finished()
-                    #if not is_episode_finished:
-                    if d == False:
+                    # is_episode_finished = self.env.is_episode_finished()
+                    # if not is_episode_finished:
+                    if not d:
                         # s1 = self.env.get_state().screen_buffer
                         s1 = ob.img  # Changed for torcs
 
@@ -359,7 +358,7 @@ class Worker:
                         v_l, p_l, e_l, loss_f, g_n, v_n = self.train(episode_buffer, sess, gamma, v1)
                         episode_buffer = []
                         sess.run(self.update_local_ops)
-                    if d == True:
+                    if d:
                         break
 
                 self.episode_rewards.append(episode_reward)
@@ -419,18 +418,20 @@ def initialize_variables(saver, sess, load_model):
 def play_training(training=True, load_model=True):
     with tf.device("/cpu:0"):
         global_episodes = tf.Variable(0, dtype=tf.int32, name='global_episodes', trainable=False)
-        trainer = tf.train.RMSPropOptimizer(learning_rate=1e-4)  # trainer for the Workers
-        master_network = AC_Network(s_size, a_size, 'global', None)  # Generate global network with trainer None
+        trainer = tf.train.AdamOptimizer(learning_rate=1e-4)  # trainer for the Workers
+        master_network = AC_Network(s_size, a_size, 'global', None, True)  # Generate global network with trainer None
 
         if training:
-            #num_workers = multiprocessing.cpu_count()  # Set workers at number of available CPU threads
-            num_workers = 4# Set workers 
+            # num_workers = multiprocessing.cpu_count()  # Set workers at number of available CPU threads
+            num_workers = 1  # Set workers
         else:
             num_workers = 1
 
         workers = []
         for i in range(num_workers):  # Create worker classes
-            workers.append(Worker(TorcsEnv(vision=True, throttle=True, gear_change=False, port=3101+i), i, s_size, a_size, trainer, model_path, global_episodes))
+            workers.append(
+                Worker(TorcsEnv(vision=True, throttle=True, gear_change=False, port=3101 + i), i, s_size, a_size,
+                       trainer, model_path, global_episodes, True))
         saver = tf.train.Saver()
 
     with tf.Session() as sess:
@@ -451,7 +452,7 @@ if __name__ == "__main__":
     max_episode_length = 300
     gamma = .99  # discount rate for advantage estimation and reward discounting
     s_size = 4096  # Observations are greyscale frames of 84 * 84 * 1
-    a_size = 2  # Agent can move Left, Right, or Fire
+    a_size = 3  # Agent can move Left, Right, or Fire
     model_path = './model'
 
     tf.reset_default_graph()
@@ -464,7 +465,7 @@ if __name__ == "__main__":
         os.makedirs('./frames')
 
     if len(sys.argv) == 1:  # run in PyCharm, adjust True/ False
-        play_training(training=False, load_model=True)
+        play_training(training=True, load_model=False)
     elif sys.argv[1] == "1":  # lunch in Terminal and specify 0 or 1 as arguments
         play_training(training=True, load_model=False)
     elif sys.argv[1] == "0":
