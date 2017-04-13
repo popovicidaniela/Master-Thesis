@@ -134,14 +134,14 @@ class AC_Network:
                     self.steer = tf.placeholder(dtype=tf.float32)
                     self.brake = tf.placeholder(dtype=tf.float32)
                     self.accelerate = tf.placeholder(dtype=tf.float32)
-                    self.steering_entropy = - tf.reduce_sum(self.steering_normal_dist.entropy())
-                    self.braking_entropy = - tf.reduce_sum(self.braking_normal_dist.entropy())
-                    self.acceleration_entropy = - tf.reduce_sum(self.acceleration_normal_dist.entropy())
-                    self.steering_policy_loss = -tf.reduce_sum(
+                    self.steering_entropy = - self.steering_normal_dist.entropy()
+                    self.braking_entropy = - self.braking_normal_dist.entropy()
+                    self.acceleration_entropy = - self.acceleration_normal_dist.entropy()
+                    self.steering_policy_loss = - tf.reduce_sum(
                         self.steering_normal_dist.log_prob(self.steer) * self.advantages)
-                    self.braking_policy_loss = -tf.reduce_sum(
+                    self.braking_policy_loss = - tf.reduce_sum(
                         self.braking_normal_dist.log_prob(self.steer) * self.advantages)
-                    self.acceleration_policy_loss = -tf.reduce_sum(
+                    self.acceleration_policy_loss = - tf.reduce_sum(
                         self.acceleration_normal_dist.log_prob(self.steer) * self.advantages)
                     self.policy_loss = self.steering_policy_loss + self.braking_policy_loss + self.acceleration_policy_loss
                     self.entropy = self.steering_entropy + self.braking_entropy + self.acceleration_entropy
@@ -194,7 +194,7 @@ class Worker:
     def train(self, rollout, sess, gamma, bootstrap_value):
         rollout = np.array(rollout)
         observations = rollout[:, 0]  # each row in the 0th column, outputs array([...])
-        actions = rollout[:, 1]
+        actions = np.asarray(rollout[:, 1].tolist())
         rewards = rollout[:, 2]
         next_observations = rollout[:, 3]
         values = rollout[:, 5]
@@ -307,11 +307,11 @@ class Worker:
                         steer = sess.run(tf.squeeze(steer))
                         acceleration_normal_dist = tf.contrib.distributions.Normal(acceleration_mean, acceleration_var)
                         acceleration = acceleration_normal_dist._sample_n(1)
-                        accelerate = tf.clip_by_value(acceleration, -1, 1)
+                        accelerate = tf.clip_by_value(acceleration, 0, 1)
                         accelerate = sess.run(tf.squeeze(accelerate))
                         braking_normal_dist = tf.contrib.distributions.Normal(braking_mean, braking_var)
                         brake = braking_normal_dist._sample_n(1)
-                        brake = tf.clip_by_value(brake, -1, 1)
+                        brake = tf.clip_by_value(brake, 0, 1)
                         brake = sess.run(tf.squeeze(brake))
                         a_t = [steer, accelerate, brake]
                         ob, r, d, info = self.env.step(a_t)
