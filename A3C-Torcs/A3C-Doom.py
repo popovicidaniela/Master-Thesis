@@ -134,9 +134,9 @@ class AC_Network:
                     self.steer = tf.placeholder(dtype=tf.float32)
                     self.brake = tf.placeholder(dtype=tf.float32)
                     self.accelerate = tf.placeholder(dtype=tf.float32)
-                    self.steering_entropy = - self.steering_normal_dist.entropy()
-                    self.braking_entropy = - self.braking_normal_dist.entropy()
-                    self.acceleration_entropy = - self.acceleration_normal_dist.entropy()
+                    self.steering_entropy = - tf.reduce_sum(self.steering_normal_dist.entropy())
+                    self.braking_entropy = - tf.reduce_sum(self.braking_normal_dist.entropy())
+                    self.acceleration_entropy = - tf.reduce_sum(self.acceleration_normal_dist.entropy())
                     self.steering_policy_loss = - tf.reduce_sum(
                         self.steering_normal_dist.log_prob(self.steer) * self.advantages)
                     self.braking_policy_loss = - tf.reduce_sum(
@@ -148,7 +148,7 @@ class AC_Network:
 
                 # Loss functions
                 self.value_loss = 0.5 * tf.reduce_sum(tf.square(self.target_v - tf.reshape(self.value, [-1])))
-                self.loss = 0.5 * self.value_loss + self.policy_loss - self.entropy * 0.01
+                self.loss = 0.5 * self.value_loss + self.policy_loss - self.entropy * 0.0001
 
                 # Get gradients from local network using local losses
                 local_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope)
@@ -185,10 +185,7 @@ class Worker:
         # actions for torcs
         if not continuous:
             self.actions = np.array([[0.5, 0.18], [0, 0.18], [0, 0.18]])  # for action turn a bit right or a bit left
-        else:
-            self.steer = 0.
-            self.accelerate = 0.
-            self.brake = 0.
+
         # End Doom setup
 
     def train(self, rollout, sess, gamma, bootstrap_value):
@@ -376,7 +373,7 @@ class Worker:
                         images = np.array(episode_frames)
                         make_gif(images, './frames/image' + str(episode_count) + '.gif',
                                  duration=len(images) * time_per_step, true_image=True, salience=False)
-                    if training and episode_count % 250 == 0 and self.name == 'worker_0':
+                    if training and episode_count % 50 == 0 and self.name == 'worker_0':
                         saver.save(sess, self.model_path + '/model-' + str(episode_count) + '.cptk')
                         print("Saved Model")
 
