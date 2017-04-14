@@ -96,13 +96,11 @@ class AC_Network:
                                                           activation_fn=None,
                                                           weights_initializer=normalized_columns_initializer(1.0),
                                                           biases_initializer=None)
-                # self.steering_normal_dist = tf.contrib.distributions.Normal(self.steering_mean, self.steering_variance)
                 self.steering_variance = tf.squeeze(self.steering_variance)
                 self.steering_variance = tf.nn.softplus(self.steering_variance) + 1e-5
                 self.steering_normal_dist = tf.contrib.distributions.Normal(self.steering_mean, self.steering_variance)
                 self.steer = self.steering_normal_dist._sample_n(1)
                 self.steer = tf.clip_by_value(self.steer, -1, 1)
-
                 self.braking_variance = slim.fully_connected(rnn_out, 1,
                                                              activation_fn=None,
                                                              weights_initializer=normalized_columns_initializer(1.0),
@@ -116,7 +114,6 @@ class AC_Network:
                 self.braking_normal_dist = tf.contrib.distributions.Normal(self.braking_mean, self.braking_variance)
                 self.brake = self.braking_normal_dist._sample_n(1)
                 self.brake = tf.clip_by_value(self.brake, 0, 1)
-
                 self.acceleration_variance = slim.fully_connected(rnn_out, 1,
                                                                   activation_fn=None,
                                                                   weights_initializer=normalized_columns_initializer(
@@ -132,7 +129,6 @@ class AC_Network:
                                                                                 self.acceleration_variance)
                 self.accelerate = self.acceleration_normal_dist._sample_n(1)
                 self.accelerate = tf.clip_by_value(self.accelerate, 0, 1)
-
             self.value = slim.fully_connected(rnn_out, 1,
                                               activation_fn=None,
                                               weights_initializer=normalized_columns_initializer(1.0),
@@ -149,10 +145,11 @@ class AC_Network:
                     self.entropy = - tf.reduce_sum(self.discrete_policy * tf.log(self.discrete_policy))
                     self.policy_loss = -tf.reduce_sum(tf.log(self.responsible_outputs) * self.advantages)
                 else:
-
                     self.steering_entropy = - tf.reduce_sum(self.steering_normal_dist.entropy())
                     self.braking_entropy = - tf.reduce_sum(self.braking_normal_dist.entropy())
                     self.acceleration_entropy = - tf.reduce_sum(self.acceleration_normal_dist.entropy())
+                    self.entropy = self.steering_entropy + self.braking_entropy + self.acceleration_entropy
+
                     self.steering_policy_loss = - tf.reduce_sum(
                         self.steering_normal_dist.log_prob(self.steer) * self.advantages)
                     self.braking_policy_loss = - tf.reduce_sum(
@@ -160,7 +157,7 @@ class AC_Network:
                     self.acceleration_policy_loss = - tf.reduce_sum(
                         self.acceleration_normal_dist.log_prob(self.steer) * self.advantages)
                     self.policy_loss = self.steering_policy_loss + self.braking_policy_loss + self.acceleration_policy_loss
-                    self.entropy = self.steering_entropy + self.braking_entropy + self.acceleration_entropy
+
 
                 # Loss functions
                 self.value_loss = 0.5 * tf.reduce_sum(tf.square(self.target_v - tf.reshape(self.value, [-1])))
@@ -311,12 +308,8 @@ class Worker:
                             feed_dict={self.local_AC.inputs: [s],
                                        self.local_AC.state_in[0]: rnn_state[0],
                                        self.local_AC.state_in[1]: rnn_state[1]})
-                        steer_action, accelerate_action, brake_action = sess.run(
-                            [tf.squeeze(steer),
-                             tf.squeeze(accelerate),
-                             tf.squeeze(brake)])
 
-                        a_t = [steer_action, accelerate_action, brake_action]
+                        a_t = [steer[0][0][0], accelerate[0][0][0], brake[0][0][0]]
                         ob, r, d, info = self.env.step(a_t)
                         # ob = observations, r = reward, d = done (episode finish, info = ?
 
