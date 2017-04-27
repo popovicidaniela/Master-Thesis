@@ -97,8 +97,9 @@ class AC_Network:
                 self.variance = tf.nn.softplus(self.variance) + 1e-5
                 self.normal_dist = tf.contrib.distributions.Normal(self.mean, self.variance)
                 self.actions = self.normal_dist._sample_n(1)
-                self.actions = [tf.clip_by_value(self.actions[0][0][0], -1, 1), tf.clip_by_value(self.actions[0][0][1], 0, 1), tf.clip_by_value(self.actions[0][0][2], 0, 1)]
-
+                self.actions = [tf.clip_by_value(self.actions[0][0][0], -1, 1),
+                                tf.clip_by_value(self.actions[0][0][1], 0, 1),
+                                tf.clip_by_value(self.actions[0][0][2], 0, 1)]
 
             self.value = slim.fully_connected(rnn_out, 1,
                                               activation_fn=None,
@@ -109,29 +110,50 @@ class AC_Network:
             if scope != 'global':
                 self.target_v = tf.placeholder(shape=[None], dtype=tf.float32)
                 self.advantages = tf.placeholder(shape=[None], dtype=tf.float32)
+
                 if not continuous:
                     self.actions = tf.placeholder(shape=[None], dtype=tf.int32)
                     self.actions_onehot = tf.one_hot(self.actions, a_size, dtype=tf.float32)
+
                     self.responsible_outputs = tf.reduce_sum(self.discrete_policy * self.actions_onehot, [1])
-                    self.entropy = - tf.reduce_sum(self.discrete_policy * tf.log(self.discrete_policy + 10e-6))  #change log for new
-                    self.policy_loss = -tf.reduce_sum(tf.log(self.responsible_outputs + 10e-6) * self.advantages) #change log for new
+
+                    self.entropy_loss = - tf.reduce_sum(self.discrete_policy * tf.log(self.discrete_policy))
+                    self.policy_loss = -tf.reduce_sum(tf.log(self.responsible_outputs) * self.advantages)
+                    self.value_loss = 0.5 * tf.reduce_sum(tf.square(self.target_v - tf.reshape(self.value, [-1])))
+
+                    self.loss = 0.5 * self.value_loss + self.policy_loss - self.entropy_loss * 0.01
                 else:
                     self.steer = tf.placeholder(shape=[None], dtype=tf.float32)
                     self.accelerate = tf.placeholder(shape=[None], dtype=tf.float32)
                     self.brake = tf.placeholder(shape=[None], dtype=tf.float32)
 
-                    self.logprob = self.normal_dist.log_prob(tf.stack([self.steer, self.accelerate, self.brake], axis=1))
+                    # self.logprob = self.normal_dist.log_prob(tf.stack([self.steer, self.accelerate, self.brake], axis=1))
+                    #
+                    # self.entropy = tf.reduce_sum(self.normal_dist.entropy())
+                    # self.entropy_loss = - tf.reduce_sum(self.entropy)
+                    #
+                    # self.steering_policy_loss = - tf.reduce_sum((self.logprob[:, 0] + self.entropy) * self.advantages)
+                    # self.accelerating_policy_loss = - tf.reduce_sum((self.logprob[:, 1] + self.entropy) * self.advantages)
+                    # self.brake_policy_loss = - tf.reduce_sum((self.logprob[:, 2] + self.entropy) * self.advantages)
+                    #
+                    # self.policy_loss = (self.steering_policy_loss + self.accelerating_policy_loss + self.braking_policy_loss)
+                    # self.value_loss = tf.reduce_sum(tf.squared_difference(self.target_v, self.value))
+                    #
+                    # self.loss = (self.policy_loss + 0.5 * self.value_loss + 1e-4 * self.entropy_loss)
 
-                    self.entropy = - tf.reduce_sum(self.normal_dist.entropy())
-                    self.steering_policy_loss = - tf.reduce_sum(self.logprob[:, 0] * self.advantages)
-                    self.accelerating_policy_loss = - tf.reduce_sum(self.logprob[:, 1] * self.advantages)
-                    self.braking_policy_loss = - tf.reduce_sum(self.logprob[:, 2] * self.advantages)
+                    epsilon = 1e-10
+                    actions = tf.stack([self.steer, self.accelerate, self.brake], axis=1)
+                    entropy = tf.reduce_sum(tf.log(self.variance + epsilon))
+                    self.entropy_loss = -tf.reduce_sum(entropy)
 
-                    self.policy_loss = self.steering_policy_loss+self.accelerating_policy_loss+self.braking_policy_loss
+                    squared_difference = tf.squared_difference(actions, self.mean)
+                    squared_distance = tf.reduce_sum(squared_difference / (self.variance + epsilon), axis=1)
 
-                # Loss functions
-                self.value_loss = 0.5 * tf.reduce_sum(tf.square(self.target_v - tf.reshape(self.value, [-1])))
-                self.loss = 0.5 * self.value_loss + self.policy_loss - self.entropy * 0.01
+                    self.policy_loss = -tf.reduce_sum((entropy + squared_distance) * self.advantages)
+
+                    self.value_loss = tf.reduce_sum(tf.squared_difference(self.target_v, self.value))
+
+                    self.loss = (self.policy_loss + 0.5 * self.value_loss + 1e-4 * self.entropy_loss)
 
                 # Get gradients from local network using local losses
                 local_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope)
@@ -162,18 +184,14 @@ class Worker:
         # Create the local copy of the network and the tensorflow op to copy global params to local network
         self.local_AC = AC_Network(s_size, a_size, self.name, trainer, continuous)
         self.update_local_ops = update_target_graph('global', self.name)
-        # Doom setup
         self.env = game
-        # self.
-        # actions for torcs
         if not continuous:
-            self.actions = np.array([[-0.5, 0, 0], [0.5, 0, 0], [0, 1, 0], [0, 0, 1]])  # for action turn a bit right or a bit left
-
-            # End Doom setup
+            self.actions = np.identity(a_size, dtype=bool).tolist()    #To have same format as doom
+            #self.actions = np.array([[-0.5, 0, 0], [0.5, 0, 0], [0, 1, 0], [0, 0, 1]])
 
     def train(self, rollout, sess, gamma, bootstrap_value):
         rollout = np.array(rollout)
-        observations = rollout[:, 0]  # each row in the 0th column, outputs array([...])
+        observations = rollout[:, 0]
         actions = np.asarray(rollout[:, 1].tolist())
         rewards = rollout[:, 2]
         next_observations = rollout[:, 3]
@@ -208,7 +226,7 @@ class Worker:
                          self.local_AC.state_in[1]: rnn_state[1]}
         v_l, p_l, e_l, loss_f, g_n, v_n, _ = sess.run([self.local_AC.value_loss,
                                                        self.local_AC.policy_loss,
-                                                       self.local_AC.entropy,
+                                                       self.local_AC.entropy_loss,
                                                        self.local_AC.loss,
                                                        self.local_AC.grad_norms,
                                                        self.local_AC.var_norms,
@@ -230,16 +248,12 @@ class Worker:
                 episode_step_count = 0
                 d = False
 
-                # self.env.new_episode()
                 if np.mod(episode_count, 20) == 0:
                     # Sometimes you need to relaunch TORCS because of the memory leak error
                     ob = self.env.reset(relaunch=True)
                     sleep(0.5)
                 else:
                     ob = self.env.reset(relaunch=False)
-
-                # changing to torcs
-                # s = self.env.get_state().screen_buffer
                 s = ob.img
 
                 # For creating gifs
@@ -252,10 +266,8 @@ class Worker:
                 # For state
                 episode_frames.append(img_gray)
                 s = process_frame(s)
-                # episode_frames.append(s)
                 rnn_state = self.local_AC.state_init
 
-                # while not self.env.is_episode_finished():
                 while not d:
                     # Take an action using probabilities from policy network output.
                     if not self.continuous:
@@ -264,11 +276,10 @@ class Worker:
                             feed_dict={self.local_AC.inputs: [s],
                                        self.local_AC.state_in[0]: rnn_state[0],
                                        self.local_AC.state_in[1]: rnn_state[1]})
-                        a_t = np.random.choice(a_dist[0], p=a_dist[0])  # a random sample is generated given the probabs
+                        a_t = np.random.choice(a_dist[0], p=a_dist[0])  # a random sample is generated given probabs
                         a_t = np.argmax(a_dist == a_t)
-                        # make action takes a list of button states and returns a reward - the result of making action:
-                        ob, r, d, info = self.env.step(self.actions[a_t])
-                        # ob = observations, r = reward, d = done (episode finish, info = ?
+                        ob, reward, d, info = self.env.step_discrete(self.actions[a_t])
+                        r = reward/100
                     else:
                         a_t, v, rnn_state = sess.run(
                             [self.local_AC.actions,
@@ -279,13 +290,9 @@ class Worker:
                                        self.local_AC.state_in[1]: rnn_state[1]})
 
                         ob, r, d, info = self.env.step(a_t)
-                        # ob = observations, r = reward, d = done (episode finish, info = ?
 
-                    # is_episode_finished = self.env.is_episode_finished()
-                    # if not is_episode_finished:
                     if not d:
-                        # s1 = self.env.get_state().screen_buffer
-                        s1 = ob.img  # Changed for torcs
+                        s1 = ob.img
 
                         # For creating gifs
                         img1 = np.ndarray((64, 64, 3))
@@ -311,8 +318,7 @@ class Worker:
 
                     # If the episode hasn't ended, but the experience buffer is full, then we
                     # make an update step using that experience rollout.
-                    if training and len(
-                            episode_buffer) == 30 and d is not True: #change to 20 for new
+                    if training and len(episode_buffer) == 100 and d is not True:  #batch to 100
                         # Since we don't know what the true final return is, we "bootstrap" from our current
                         # value estimation
                         v1 = sess.run(self.local_AC.value,
@@ -332,10 +338,9 @@ class Worker:
                 if episode_reward > 10000:
                     time_per_step = 0.05
                     images = np.ndarray((64, 64))
-                    #images[:, :] = s1[:].reshape((64, 64))
                     images = np.array(episode_frames)
-                    #print("Her er images shape:", images.shape)
-                    make_gif(images, './frames/r_image' + str(episode_reward) + '.gif', duration=len(images) * time_per_step, true_image=True, salience=False)
+                    make_gif(images, './frames/r_image' + str(episode_reward) + '.gif',
+                             duration=len(images) * time_per_step, true_image=True, salience=False)
 
                 # Update the network using the experience buffer at the end of the episode.
                 if training and len(episode_buffer) != 0:
@@ -390,17 +395,17 @@ def initialize_variables(saver, sess, load_model):
 def play_training(training=True, load_model=True):
     with tf.device("/cpu:0"):
         global_episodes = tf.Variable(0, dtype=tf.int32, name='global_episodes', trainable=False)
-        trainer = tf.train.RMSPropOptimizer(learning_rate=1e-4, decay=0.99, epsilon=1)  # trainer for the Workers
-        master_network = AC_Network(s_size, a_size, 'global', None, False)  # Generate global network with trainer None
+        trainer = tf.train.RMSPropOptimizer(learning_rate=1e-4, decay=0.99, epsilon=1)
+        master_network = AC_Network(s_size, a_size, 'global', None, False)
 
         if training:
-            # num_workers = multiprocessing.cpu_count()  # Set workers at number of available CPU threads
-            num_workers = 4  # Set workers
+            #num_workers = multiprocessing.cpu_count()  # Set workers at number of available CPU threads
+            num_workers = 4
         else:
             num_workers = 1
 
         workers = []
-        for i in range(num_workers):  # Create worker classes
+        for i in range(num_workers):
             workers.append(
                 Worker(TorcsEnv(vision=True, throttle=True, gear_change=False, port=3101 + i), i, s_size, a_size,
                        trainer, model_path, global_episodes, False))
@@ -436,9 +441,9 @@ if __name__ == "__main__":
     if not os.path.exists('./frames'):
         os.makedirs('./frames')
 
-    if len(sys.argv) == 1:  # run in PyCharm, adjust True/ False
+    if len(sys.argv) == 1:  # run from PyCharm
         play_training(training=True, load_model=False)
-    elif sys.argv[1] == "1":  # lunch in Terminal and specify 0 or 1 as arguments
+    elif sys.argv[1] == "1":  # lunch from Terminal and specify 0 or 1 as arguments
         play_training(training=True, load_model=False)
     elif sys.argv[1] == "0":
         play_training(training=False, load_model=True)
