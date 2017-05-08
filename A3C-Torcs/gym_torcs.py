@@ -13,7 +13,7 @@ import signal
 
 
 class TorcsEnv:
-    terminal_judge_start = 500  # Speed limit is applied after this step
+    terminal_judge_start = 100  # Speed limit is applied after this step
     termination_limit_progress = 5  # [km/h], episode terminates if car is running slower than this limit
     default_speed = 50
 
@@ -71,6 +71,111 @@ class TorcsEnv:
             low = np.array([0., -np.inf, -np.inf, -np.inf, 0., -np.inf, 0., -np.inf, 0])
             self.observation_space = spaces.Box(low=low, high=high)
 
+    def step_discrete(self, u):
+        # convert thisAction to the actual torcs actionstr
+        client = self.client
+
+        this_action = self.agent_to_torcs_discrete(u)
+
+        # Apply Action
+        action_torcs = client.R.d
+        
+        # Steering
+        if this_action['steerleft'] == True:
+            action_torcs['steer'] += -0.5
+            action_torcs['accel'] = 0
+            action_torcs['brake'] = 0
+        if this_action['steerright'] == True:
+            action_torcs['steer'] += 0.5
+            action_torcs['accel'] = 0
+            action_torcs['brake'] = 0
+        if this_action['accel'] == True:
+            action_torcs['accel'] += 1
+            action_torcs['steer'] = 0
+            action_torcs['brake'] = 0
+        if this_action['brake'] == True:
+            action_torcs['brake'] = 0
+            action_torcs['accel'] = 0
+            action_torcs['steer'] = 0
+
+        #print("action_torcs: ",self.port, action_torcs)
+        #action_torcs['steer'] = this_action['steer']  # in [-1, 1]
+
+        #  Automatic Gear Change by Snakeoil
+        if self.gear_change is True:
+            action_torcs['gear'] = this_action['gear']
+        else:
+            #  Automatic Gear Change by Snakeoil is possible
+            action_torcs['gear'] = 1
+            if self.throttle:
+                if client.S.d['speedX'] > 50:
+                    action_torcs['gear'] = 2
+                if client.S.d['speedX'] > 80:
+                    action_torcs['gear'] = 3
+                if client.S.d['speedX'] > 110:
+                    action_torcs['gear'] = 4
+                if client.S.d['speedX'] > 140:
+                    action_torcs['gear'] = 5
+                if client.S.d['speedX'] > 170:
+                    action_torcs['gear'] = 6
+
+        # Save the privious full-obs from torcs for the reward calculation
+        obs_pre = copy.deepcopy(client.S.d)
+
+        # One-Step Dynamics Update #################################
+        # Apply the Agent's action into torcs
+        client.respond_to_server()
+        # Get the response of TORCS
+        client.get_servers_input()
+
+        # Get the current full-observation from torcs
+        obs = client.S.d
+
+        # Make an obsevation from a raw observation vector from TORCS
+        self.observation = self.make_observaton(obs)
+
+        # Reward setting Here #######################################
+        # direction-dependent positive reward
+        track = np.array(obs['track'])
+        trackPos = np.array(obs['trackPos'])
+        sp = np.array(obs['speedX'])
+        damage = np.array(obs['damage'])
+        rpm = np.array(obs['rpm'])
+        distance = np.array(obs['distRaced'])
+
+        progress = sp * np.cos(obs['angle']) - np.abs(sp * np.sin(obs['angle'])) - sp * np.abs(obs['trackPos'])
+        #progress = distance
+        reward = progress
+
+        # collision detection
+        if obs['damage'] - obs_pre['damage'] > 0:
+            reward = -1
+
+        # Termination judgement #########################
+        episode_terminate = False
+        if (abs(track.any()) > 1 or abs(trackPos) > 1):  # Episode is terminated if the car is out of track
+            reward = -200
+            episode_terminate = True
+            client.R.d['meta'] = True
+
+        if self.terminal_judge_start < self.time_step:  # Episode terminates if the progress of agent is small
+            if progress < self.termination_limit_progress:
+                print("No progress")
+                episode_terminate = True
+                client.R.d['meta'] = True
+
+        if np.cos(obs['angle']) < 0:  # Episode is terminated if the agent runs backward
+            episode_terminate = True
+            client.R.d['meta'] = True
+
+        if client.R.d['meta'] is True:  # Send a reset signal
+            self.initial_run = False
+            client.respond_to_server()
+
+        self.time_step += 1
+
+        return self.get_obs(), reward, client.R.d['meta'], {}
+
     def step(self, u):
         #print("Step")
         # convert thisAction to the actual torcs actionstr
@@ -104,6 +209,7 @@ class TorcsEnv:
                 action_torcs['accel'] -= .2
         else:
             action_torcs['accel'] = this_action['accel']
+            action_torcs['brake'] = this_action['brake']
 
         #  Automatic Gear Change by Snakeoil
         if self.gear_change is True:
@@ -111,19 +217,17 @@ class TorcsEnv:
         else:
             #  Automatic Gear Change by Snakeoil is possible
             action_torcs['gear'] = 1
-            """
-            if client.S.d['speedX'] > 50:
-                action_torcs['gear'] = 2
-            if client.S.d['speedX'] > 80:
-                action_torcs['gear'] = 3
-            if client.S.d['speedX'] > 110:
-                action_torcs['gear'] = 4
-            if client.S.d['speedX'] > 140:
-                action_torcs['gear'] = 5
-            if client.S.d['speedX'] > 170:
-                action_torcs['gear'] = 6
-            """
-
+            if self.throttle:
+                if client.S.d['speedX'] > 50:
+                    action_torcs['gear'] = 2
+                if client.S.d['speedX'] > 80:
+                    action_torcs['gear'] = 3
+                if client.S.d['speedX'] > 110:
+                    action_torcs['gear'] = 4
+                if client.S.d['speedX'] > 140:
+                    action_torcs['gear'] = 5
+                if client.S.d['speedX'] > 170:
+                    action_torcs['gear'] = 6
         # Save the privious full-obs from torcs for the reward calculation
         obs_pre = copy.deepcopy(client.S.d)
 
@@ -142,10 +246,15 @@ class TorcsEnv:
         # Reward setting Here #######################################
         # direction-dependent positive reward
         track = np.array(obs['track'])
+        trackPos = np.array(obs['trackPos'])
         sp = np.array(obs['speedX'])
-        progress = sp*np.cos(obs['angle'])
-        reward = progress
+        damage = np.array(obs['damage'])
+        rpm = np.array(obs['rpm'])
+        distance = np.array(obs['distRaced'])
 
+        progress = sp * np.cos(obs['angle']) - np.abs(sp * np.sin(obs['angle'])) - sp * np.abs(obs['trackPos'])
+        #progress = distance
+        reward = progress
         # collision detection
         if obs['damage'] - obs_pre['damage'] > 0:
             reward = -1
@@ -222,10 +331,24 @@ class TorcsEnv:
 
         if self.throttle is True:  # throttle action is enabled
             torcs_action.update({'accel': u[1]})
+            torcs_action.update({'brake': u[2]})
+
+        if self.gear_change is True: # gear change action is enabled
+            torcs_action.update({'gear': int(u[3])})
+
+        return torcs_action
+
+    def agent_to_torcs_discrete(self, u):
+        torcs_action = {'steerleft': u[0]}
+        torcs_action.update({'steerright': u[1]})
+
+        if self.throttle is True:  # throttle action is enabled
+            torcs_action.update({'accel': u[2]})
 
         if self.gear_change is True: # gear change action is enabled
             torcs_action.update({'gear': u[2]})
 
+        torcs_action.update({'brake': u[3]})
         return torcs_action
 
 
@@ -245,41 +368,22 @@ class TorcsEnv:
         return np.array(rgb, dtype=np.uint8)
 
     def make_observaton(self, raw_obs):
-        if self.vision is False:
-            names = ['focus',
-                     'speedX', 'speedY', 'speedZ',
-                     'opponents',
-                     'rpm',
-                     'track',
-                     'wheelSpinVel']
-            Observation = col.namedtuple('Observaion', names)
-            return Observation(focus=np.array(raw_obs['focus'], dtype=np.float32)/200.,
-                               speedX=np.array(raw_obs['speedX'], dtype=np.float32)/self.default_speed,
-                               speedY=np.array(raw_obs['speedY'], dtype=np.float32)/self.default_speed,
-                               speedZ=np.array(raw_obs['speedZ'], dtype=np.float32)/self.default_speed,
-                               opponents=np.array(raw_obs['opponents'], dtype=np.float32)/200.,
-                               rpm=np.array(raw_obs['rpm'], dtype=np.float32),
-                               track=np.array(raw_obs['track'], dtype=np.float32)/200.,
-                               wheelSpinVel=np.array(raw_obs['wheelSpinVel'], dtype=np.float32))
+        names = ['focus', 'speedX', 'speedY', 'speedZ', 'angle', 'damage', 'opponents', 'rpm', 'track', 'trackPos',
+                 'wheelSpinVel', 'img']
+        if self.vision is True:
+            image_rgb = self.obs_vision_to_image_rgb(raw_obs[names[11]])
         else:
-            names = ['focus',
-                     'speedX', 'speedY', 'speedZ',
-                     'opponents',
-                     'rpm',
-                     'track',
-                     'wheelSpinVel',
-                     'img']
-            Observation = col.namedtuple('Observaion', names)
-
-            # Get RGB from observation
-            image_rgb = self.obs_vision_to_image_rgb(raw_obs[names[8]])
-
-            return Observation(focus=np.array(raw_obs['focus'], dtype=np.float32)/200.,
-                               speedX=np.array(raw_obs['speedX'], dtype=np.float32)/self.default_speed,
-                               speedY=np.array(raw_obs['speedY'], dtype=np.float32)/self.default_speed,
-                               speedZ=np.array(raw_obs['speedZ'], dtype=np.float32)/self.default_speed,
-                               opponents=np.array(raw_obs['opponents'], dtype=np.float32)/200.,
-                               rpm=np.array(raw_obs['rpm'], dtype=np.float32),
-                               track=np.array(raw_obs['track'], dtype=np.float32)/200.,
-                               wheelSpinVel=np.array(raw_obs['wheelSpinVel'], dtype=np.float32),
-                               img=image_rgb)
+            image_rgb = None
+        Observation = col.namedtuple('Observaion', names)
+        return Observation(focus=np.array(raw_obs['focus'], dtype=np.float32) / 200.,
+                           speedX=np.array(raw_obs['speedX'], dtype=np.float32) / 300.0,
+                           speedY=np.array(raw_obs['speedY'], dtype=np.float32) / 300.0,
+                           speedZ=np.array(raw_obs['speedZ'], dtype=np.float32) / 300.0,
+                           angle=np.array(raw_obs['angle'], dtype=np.float32) / 3.1416,
+                           damage=np.array(raw_obs['damage'], dtype=np.float32),
+                           opponents=np.array(raw_obs['opponents'], dtype=np.float32) / 200.,
+                           rpm=np.array(raw_obs['rpm'], dtype=np.float32) / 10000,
+                           track=np.array(raw_obs['track'], dtype=np.float32) / 200.,
+                           trackPos=np.array(raw_obs['trackPos'], dtype=np.float32) / 1.,
+                           wheelSpinVel=np.array(raw_obs['wheelSpinVel'], dtype=np.float32),
+                           img=image_rgb)
