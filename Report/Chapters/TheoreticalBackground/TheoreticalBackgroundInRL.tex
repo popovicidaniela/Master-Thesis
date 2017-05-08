@@ -113,16 +113,27 @@ The Bellman optimality equation generates a system of $N$ nonlinear equations, w
 \subsection{Solution methods}
 The solution methods for the reinforcement learning problem can be divided into two groups, tabular and approximate. The tabular solution methods find exact, optimal solutions and are more suitable when the states and actions space is rather small, while the approximate solution methods provide approximate solutions and it is applicable to large spaces problems.
 
+The process of \textit{generalized policy iteration} (GPI) provides a good way of getting insight into the methods of RL. GPI employs a sequence of interleaved policy evaluations and policy improvements, where the given policy is evaluated, for example, by computing it's value function, and the policy is improved by using the value function. This process is proven to converge to an optimal policy and value function for the classical dynamic programming methods. GPI represents the way that almost all RL methods work. The \Cref{fig:GPI} illustrates the process better.
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.9\textwidth]{Figures/GPI}
+	\caption{Generalized Policy Iteration}
+	\label{fig:GPI}
+\end{figure}
+Another way of presenting the GPI is in terms of \textit{prediction} and \textit{control}. The prediction problem is referring to policy evaluation or the estimation of $v_{\pi}$ for a given policy $\pi$, whereas the control problem is referring to the actual optimal policy $\pi_{*}$ seeking.
+
+The relevant notions for describing the methods of RL are \textit{backup} and \textit{bootstrap}. A \textit{full backup} updates a state's value on the basis of the next states estimated values. \textit{Bootstrapping} refers to the idea of updating estimates based on other estimates.
+
+Usually, the RL solution methods vary in the way they approach the prediction and control problems, and also in whether they need a model of the environment or they use bootstrapping.
+
 \subsubsection{Tabular solution methods}
-The tabular solution methods include three important classes of methods for solving the finite MDP: dynamic programming, Monte Carlo and temporal-difference learning. Combinations of these and addition of other features like eligibility traces, model learning would result in better approaches.
+The tabular solution methods include three important classes of methods for solving the finite MDP: \textit{Dynamic Programming} (DP), \textit{Monte Carlo} (MC) and \textit{Temporal-Difference} (TD) learning. Combinations of these and addition of other features like eligibility traces, model learning would result in better approaches.
 
-\textit{Dynamic programming (DP)} uses the Bellman optimality equations \ref{BellmanOptimalityVstar} and \ref{BellmanOptimalityQstar} as update functions for improving approximations of the targeted value functions. 
+Dynamic programming uses the Bellman optimality equations \ref{BellmanOptimalityVstar} and \ref{BellmanOptimalityQstar} as update functions for \textit{policy iteration} which yields a sequence of monotonically increasing value functions and policies: ${\pi}_{0}\overset{E}{\rightarrow}v_{{\pi}_{0}}\overset{I}{\rightarrow}{\pi}_{1}\overset{E}{\rightarrow}v_{{\pi}_{1}}\overset{I}{\rightarrow}{\pi}_{2}\overset{E}{\rightarrow}...\overset{I}{\rightarrow}{\pi}_{*}\overset{E}{\rightarrow}v_{*}$, where $E$ stands for evaluation and $I$ - for improvement.
 
-DP performs \textit{policy evaluation} by computing the state-value function $v_{\pi}$ according to the equation \ref{StateValueFunction} at every iteration, generating a sequence of updates $v_{0}, v_{1}, v_{2},...$, where $v_{0}$ can be initialized randomly with $0$ for example. This process of iterative policy evaluation is deployed at each state and stops when the maximal difference between two consecutive updates is small enough.
+Unlike the DP methods, the Monte Carlo and the temporal-difference solution methods don't require the model parameters to be known in advance, meaning that no previous knowledge about the environment is needed and that the agent learns exclusively from it's \textit{experience} (sampled states, actions, rewards). The MC method does bootstrap, like the DP methods, whereas TD doesn't use bootstrapping.
 
-\textit{Monte Carlo} solution method description...
 
-\textit{Temporal Difference} solution method description...
 
 \subsubsection{Approximate solution methods}
 The approximate solution methods are an extension to the tabular solution methods for huge states spaces problems. In this type of problems, the goal is to find a good approximate solution under the condition of restricted computational resources. Because almost every visited state is seen for the first time, every state being so unique, the agent needs to be able to make sense of it and, therefore, usefully generalize the information it gets. This is possible thanks to function approximation. “Function approximation is an instance of supervised learning, the primary topic studied in machine learning, artificial neural networks, pattern recognition, and statistical curve fitting” \cite{Sutton}.
