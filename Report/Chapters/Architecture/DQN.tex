@@ -32,6 +32,7 @@ To do this deep learning comes in to the picture. Neural networks are extremely 
 	\label{fig:DQN_two_approach}
 \end{figure}    
 
+\subsection{Network}
 The network architecture that DeepMind used can be seen on the table below \Cref{tab:DQN_network}. 
 
 \begin{table}[H]
@@ -52,5 +53,29 @@ The network architecture that DeepMind used can be seen on the table below \Cref
 	\end{tabular}
 \end{table}
 
+The network can be seen as a classical convolutional neural network with three convolutional layers, followed by two fully connected layers. One of the things which makes this neural network different from the classical neural networks used for image recognition, is no poling layers are used. No pooling layers are used because they buy translation invariance -  the network becomes insensitive to the location of an object in the image. This is okay for image recognition, but for games where the location of the ball is important for deciding the potential reward.  
 
+As seen on \Cref{fig:DQN_two_approach} the input to the network is four 84x84 grayscale game screens. The output of the network are a Q-value for each action, 18 actions for atari games (in breakout there are only 3 actions). The Q-value can be any real number, which make it a regression task. The optimization of the Q-values can be done by a squared error loss. 
+
+\begin{equation}
+L=\frac{1}{2}[r+max_{a'}Q(s',a')-Q(s,a)]^2
+\end{equation}  
+
+In the squared error loss function is $r+max_{a'}Q(s',a')$ the target, and $Q(s,a)$ is the prediction. Given a transaction <s,a,r,s'>, the Q-table is updated by the following steps:
+\begin{enumerate}
+	\item Do a feedforward pass for the current state s to get predicted Q-values for all actions.
+	\item Do a feedforward pass for the next state s’ and calculate maximum overall network outputs $max_{a'}Q(s',a')$
+	\item Set Q-value target for action to $r+max_{a'}Q(s',a')$ (use the max calculated in step 2).For all other actions, set the Q-value target to the same as originally returned from step 1, making the error 0 for those outputs. 
+	\item Update the weights using backpropagation.
+\end{enumerate}
+
+\subsubsection{Experience Replay}
+The approximation of the Q-values using non-linear functions is not very stable. There is many tricks to make i converge. And the problem with this method is it takes long time to converge almost a week on a single GPU. 
+
+The most important tricks is experience replay. During gameplay all the experiences <s, a, r, s’> are stored in a replay memory. While training the network random minibatches are used instead of the recent transition. This breacks the similarity of training samples, and there by avoid the network to reach a local minimum. Experience replay makes the training task more similar to usual supervised learning, which simplifies debugging and testing the algorithm. A way this could be done is by collecting experience from human players, and train on those experiences.
+  
+\subsubsection{Exploration-Exploitation}
+In reinforcement learning the Exploration-Exploitation dilemma, is if the agent should explore or exploit. First when the Q-table or Q-network is initialized randomly, then the prediction of the action is equally random, this is called exploration. As a Q-function converges, it returns more consistent Q-values and the amount of exploration decreases. Q-learning use the exploration as part of the algorithm. But this exploration is “greedy”, it settles with the first effective strategy it finds.
+
+A simple way to do this is to use the $\epsilon$-greedy exploration - with probability $\epsilon$ choose a random action, otherwise go with the “greedy” action with the highest Q-value. DeepMind decreases $\epsilon$ over time from 1 to 0.1. This means in the beginning the system makes random actions to explore the state space maximally, and in the end it settles to a fixed exploration rate.  
         
