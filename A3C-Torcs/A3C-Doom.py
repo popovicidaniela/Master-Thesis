@@ -127,20 +127,6 @@ class AC_Network:
                     self.accelerate = tf.placeholder(shape=[None], dtype=tf.float32)
                     self.brake = tf.placeholder(shape=[None], dtype=tf.float32)
 
-                    # self.logprob = self.normal_dist.log_prob(tf.stack([self.steer, self.accelerate, self.brake], axis=1))
-                    #
-                    # self.entropy = tf.reduce_sum(self.normal_dist.entropy())
-                    # self.entropy_loss = - tf.reduce_sum(self.entropy)
-                    #
-                    # self.steering_policy_loss = - tf.reduce_sum((self.logprob[:, 0] + self.entropy) * self.advantages)
-                    # self.accelerating_policy_loss = - tf.reduce_sum((self.logprob[:, 1] + self.entropy) * self.advantages)
-                    # self.brake_policy_loss = - tf.reduce_sum((self.logprob[:, 2] + self.entropy) * self.advantages)
-                    #
-                    # self.policy_loss = (self.steering_policy_loss + self.accelerating_policy_loss + self.braking_policy_loss)
-                    # self.value_loss = tf.reduce_sum(tf.squared_difference(self.target_v, self.value))
-                    #
-                    # self.loss = (self.policy_loss + 0.5 * self.value_loss + 1e-4 * self.entropy_loss)
-
                     epsilon = 1e-10
                     actions = tf.stack([self.steer, self.accelerate, self.brake], axis=1)
                     entropy = tf.reduce_sum(tf.log(self.variance + epsilon))
@@ -187,7 +173,6 @@ class Worker:
         self.env = game
         if not continuous:
             self.actions = np.identity(a_size, dtype=bool).tolist()    #To have same format as doom
-            #self.actions = np.array([[-0.5, 0, 0], [0.5, 0, 0], [0, 1, 0], [0, 0, 1]])
 
     def train(self, rollout, sess, gamma, bootstrap_value):
         rollout = np.array(rollout)
@@ -248,24 +233,16 @@ class Worker:
                 episode_step_count = 0
                 d = False
 
-                if np.mod(episode_count, 20) == 0:
-                    # Sometimes you need to relaunch TORCS because of the memory leak error
-                    ob = self.env.reset(relaunch=True)
-                    sleep(0.5)
-                else:
-                    ob = self.env.reset(relaunch=False)
+                ob = self.env.reset(relaunch=False)
                 s = ob.img
 
-                # For creating gifs
-                img = np.ndarray((64, 64, 3))
-                for z in range(3):
-                    img[:, :, z] = 255 - s[:, z].reshape((64, 64))
-                red, green, blue = img[:, :, 0], img[:, :, 1], img[:, :, 2]
-                img_gray = 0.2989 * red + 0.5870 * green + 0.1140 * blue
 
                 # For state
-                episode_frames.append(img_gray)
                 s = process_frame(s)
+
+                # For creating gifs
+                to_gif = np.reshape(s, (64, 64)) * 255
+                episode_frames.append(to_gif)
                 rnn_state = self.local_AC.state_init
 
                 while not d:
@@ -279,7 +256,7 @@ class Worker:
                         a_t = np.random.choice(a_dist[0], p=a_dist[0])  # a random sample is generated given probabs
                         a_t = np.argmax(a_dist == a_t)
                         ob, reward, d, info = self.env.step_discrete(self.actions[a_t])
-                        r = reward/100
+                        r = reward/1000
                     else:
                         a_t, v, rnn_state = sess.run(
                             [self.local_AC.actions,
@@ -294,17 +271,11 @@ class Worker:
                     if not d:
                         s1 = ob.img
 
-                        # For creating gifs
-                        img1 = np.ndarray((64, 64, 3))
-                        for z1 in range(3):
-                            img1[:, :, z] = 255 - s1[:, z].reshape((64, 64))
-                        red1, green1, blue1 = img1[:, :, 0], img1[:, :, 1], img1[:, :, 2]
-                        img_gray1 = 0.2989 * red1 + 0.5870 * green1 + 0.1140 * blue1
-                        episode_frames.append(img_gray1)
-
                         # for state
                         s1 = process_frame(s1)
-                        # episode_frames.append(s1)
+                        # For creating gifs
+                        to_gif1 = np.reshape(s1, (64, 64)) * 255
+                        episode_frames.append(to_gif1)
                     else:
                         s1 = s
 
@@ -335,25 +306,18 @@ class Worker:
                 self.episode_lengths.append(episode_step_count)
                 self.episode_mean_values.append(np.mean(episode_values))
 
-                if episode_reward > 10000:
-                    time_per_step = 0.05
-                    images = np.ndarray((64, 64))
-                    images = np.array(episode_frames)
-                    make_gif(images, './frames/r_image' + str(episode_reward) + '.gif',
-                             duration=len(images) * time_per_step, true_image=True, salience=False)
-
                 # Update the network using the experience buffer at the end of the episode.
                 if training and len(episode_buffer) != 0:
                     v_l, p_l, e_l, loss_f, g_n, v_n = self.train(episode_buffer, sess, gamma, 0.0)
 
                 # Periodically save gifs of episodes, model parameters, and summary statistics.
                 if episode_count % 5 == 0 and episode_count != 0:
-                    if training and self.name == 'worker_0' and episode_count % 100 == 0:
+                    if training and self.name == 'worker_0' and episode_count % 50 == 0:
                         time_per_step = 0.05
                         images = np.array(episode_frames)
                         make_gif(images, './frames/image' + str(episode_count) + '.gif',
                                  duration=len(images) * time_per_step, true_image=True, salience=False)
-                    if training and episode_count % 10 == 0 and self.name == 'worker_0':
+                    if training and episode_count % 5 == 0 and self.name == 'worker_0':
                         saver.save(sess, self.model_path + '/model-' + str(episode_count) + '.cptk')
                         print("Saved Model")
 
@@ -395,7 +359,8 @@ def initialize_variables(saver, sess, load_model):
 def play_training(training=True, load_model=True):
     with tf.device("/cpu:0"):
         global_episodes = tf.Variable(0, dtype=tf.int32, name='global_episodes', trainable=False)
-        trainer = tf.train.RMSPropOptimizer(learning_rate=1e-4, decay=0.99, epsilon=1)
+        #trainer = tf.train.RMSPropOptimizer(learning_rate=1e-4, decay=0.99, epsilon=1)
+        trainer = tf.train.AdamOptimizer(learning_rate=1e-4)
         master_network = AC_Network(s_size, a_size, 'global', None, False)
 
         if training:
@@ -407,7 +372,7 @@ def play_training(training=True, load_model=True):
         workers = []
         for i in range(num_workers):
             workers.append(
-                Worker(TorcsEnv(vision=True, throttle=True, gear_change=False, port=3101 + i), i, s_size, a_size,
+                Worker(TorcsEnv(vision=True, throttle=False, gear_change=False, port=3101 + i), i, s_size, a_size,
                        trainer, model_path, global_episodes, False))
         saver = tf.train.Saver()
 
@@ -429,7 +394,7 @@ if __name__ == "__main__":
     max_episode_length = 300
     gamma = .99  # discount rate for advantage estimation and reward discounting
     s_size = 4096  # Observations are greyscale frames of 84 * 84 * 1
-    a_size = 4  # Left, Right, Forward, Brake
+    a_size = 3  # Left, Right, Forward, Brake
     model_path = './model'
 
     tf.reset_default_graph()

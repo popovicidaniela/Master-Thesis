@@ -82,17 +82,17 @@ class TorcsEnv:
         
         # Steering
         if this_action['steerleft'] == True:
-            action_torcs['steer'] += -0.5
+            action_torcs['steer'] += 1
             action_torcs['accel'] = 0
             action_torcs['brake'] = 0
         if this_action['steerright'] == True:
-            action_torcs['steer'] += 0.5
+            action_torcs['steer'] += -1
             action_torcs['accel'] = 0
             action_torcs['brake'] = 0
-        if this_action['accel'] == True:
-            action_torcs['accel'] += 1
-            action_torcs['steer'] = 0
-            action_torcs['brake'] = 0
+        #if this_action['accel'] == True:
+        #    action_torcs['accel'] += 1
+        #    action_torcs['steer'] = 0
+        #    action_torcs['brake'] = 0
         if this_action['brake'] == True:
             action_torcs['brake'] = 0
             action_torcs['accel'] = 0
@@ -100,6 +100,25 @@ class TorcsEnv:
 
         #print("action_torcs: ",self.port, action_torcs)
         #action_torcs['steer'] = this_action['steer']  # in [-1, 1]
+
+        #for throttle
+        if self.throttle is False:
+            target_speed = self.default_speed
+            if client.S.d['speedX'] < target_speed - (client.R.d['steer']*50):
+                client.R.d['accel'] += .01
+            else:
+                client.R.d['accel'] -= .01
+
+            if client.R.d['accel'] > 0.2:
+                client.R.d['accel'] = 0.2
+
+            if client.S.d['speedX'] < 10:
+                client.R.d['accel'] += 1/(client.S.d['speedX']+.1)
+
+            # Traction Control System
+            if ((client.S.d['wheelSpinVel'][2]+client.S.d['wheelSpinVel'][3]) -
+               (client.S.d['wheelSpinVel'][0]+client.S.d['wheelSpinVel'][1]) > 5):
+                action_torcs['accel'] -= .2
 
         #  Automatic Gear Change by Snakeoil
         if self.gear_change is True:
@@ -144,7 +163,6 @@ class TorcsEnv:
         distance = np.array(obs['distRaced'])
 
         progress = sp * np.cos(obs['angle']) - np.abs(sp * np.sin(obs['angle'])) - sp * np.abs(obs['trackPos'])
-        #progress = distance
         reward = progress
 
         # collision detection
@@ -158,13 +176,19 @@ class TorcsEnv:
             episode_terminate = True
             client.R.d['meta'] = True
 
-        if self.terminal_judge_start < self.time_step:  # Episode terminates if the progress of agent is small
-            if progress < self.termination_limit_progress:
-                print("No progress")
-                episode_terminate = True
-                client.R.d['meta'] = True
+        #if self.terminal_judge_start < self.time_step:  # Episode terminates if the progress of agent is small
+        #    if progress < self.termination_limit_progress:
+        #        print("No progress")
+        #        episode_terminate = True
+        #        client.R.d['meta'] = True
+
+        if obs['lastLapTime'] > 0:
+            reward = 200
+            episode_terminate = True
+            client.R.d['meta'] = True
 
         if np.cos(obs['angle']) < 0:  # Episode is terminated if the agent runs backward
+            reward = -200
             episode_terminate = True
             client.R.d['meta'] = True
 
@@ -344,11 +368,13 @@ class TorcsEnv:
 
         if self.throttle is True:  # throttle action is enabled
             torcs_action.update({'accel': u[2]})
+            torcs_action.update({'brake': u[3]})
+        else:
+            torcs_action.update({'brake': u[2]})
 
         if self.gear_change is True: # gear change action is enabled
             torcs_action.update({'gear': u[2]})
 
-        torcs_action.update({'brake': u[3]})
         return torcs_action
 
 
