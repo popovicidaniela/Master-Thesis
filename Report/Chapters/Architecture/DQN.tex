@@ -1,4 +1,4 @@
-\section{Deep Q Networks}
+\section{Deep Q Networks (DQN)}
 \label{sec:DQN}
 The first deep reinforcement learning network there has been created in this project is the Deep Q Network. The Deep Q Network was first time described in the paper "playing Atari with Deep reinforcement learning" \cite{DBLP:journals/corr/MnihKSGAWR13} published by DeepMind. In this paper they learned the computer to play Atari 2600 video games. The computer only observed the screen pixels from the game, and received a reward when the game score increased. The result was remarkable, because the games and the goals in the games are very different. The same architecture was used for seven different games. In 3 of the seven games the computer performed better than the best human. 
 
@@ -78,4 +78,39 @@ The most important tricks is experience replay. During gameplay all the experien
 In reinforcement learning the Exploration-Exploitation dilemma, is if the agent should explore or exploit. First when the Q-table or Q-network is initialized randomly, then the prediction of the action is equally random, this is called exploration. As a Q-function converges, it returns more consistent Q-values and the amount of exploration decreases. Q-learning use the exploration as part of the algorithm. But this exploration is “greedy”, it settles with the first effective strategy it finds.
 
 A simple way to do this is to use the $\epsilon$-greedy exploration - with probability $\epsilon$ choose a random action, otherwise go with the “greedy” action with the highest Q-value. DeepMind decreases $\epsilon$ over time from 1 to 0.1. This means in the beginning the system makes random actions to explore the state space maximally, and in the end it settles to a fixed exploration rate.  
+
+\subsubsection{Algorithm}
+All this theory end up in an algorithm of the Deep Q Network with experience replay, which can be seen below in \Cref{algo:DQN}.. This is the Algorithm from DeepMind \cite{DBLP:journals/corr/MnihKSGAWR13}.
+
+\begin{algorithm}
+	\caption{Deep Q-learning with Experience Replay \label{euclid}}
+	\label{algo:DQN}
+	\begin{algorithmic}[]
+		\State initialize replay memory \textit{D}
+		\State initialize action-value function \textit{Q} with random weights
+		\State observe initial state \textit{s} 
+		\Repeat
+			\State select an action \textit{a}
+				\par with probability $\epsilon$ select a random action otherwise select 
+				\par $a = \mathrm{argmax}_{a'}Q(s,a')$
+		
+			\State carry out action \textit{a}
+			\State observe reward \textit{r} and new state \textit{s'}
+			\State store experience <\textit{s}, \textit{a}, \textit{r}, \textit{s'}> in replay memory \textit{D}
+			\newline
+			\State sample random transition <\textit{ss}, \textit{aa}, \textit{rr}, \textit{ss'}>      
+			\State calculate target for each minibatch transition
+				\par if \textit{ss'} is terminal state then \textit{tt} = \textit{rr} otherwise 
+				\par $tt = rr + \gamma \mathrm{max}_{a'}Q(ss',aa')$
+			\State train the Q network using $(\textit{tt} - Q(\textit{ss}, \textit{aa}))^2$ as loss	
+			\newline
+			\State \textit{s} = \textit{s'}
+		\Until terminated
+	\end{algorithmic}
+\end{algorithm}
+
+This is some of the tricks DeepMind has used, to get the Deep Q Network to work, but they use other tricks than these. Some of the other tricks they use is target network, error clipping, reward clipping etc. 
+
+The amazing part of the Deep Q Network is that it learns. Because the Q-function is initialized randomly, it initially outputs doesn't make sense at all. The network then uses this outputs (the maximum Q-value of the next state ) as targets for the network, only occasionally folding in a tiny reward. This is what made the Deep Q Network, the state of the art, when it was published. \cite{DQN_theory} \cite{DQN_Flappy} 
+
         
