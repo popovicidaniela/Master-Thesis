@@ -85,21 +85,22 @@ class AC_Network:
                                                             weights_initializer=normalized_columns_initializer(0.01),
                                                             biases_initializer=None)
             else:
-                self.variance = slim.fully_connected(rnn_out, 3,
+                self.variance = slim.fully_connected(rnn_out, 1,  # 1 action instead of 3 actions
                                                      activation_fn=None,
-                                                     weights_initializer=normalized_columns_initializer(1.0),
+                                                     weights_initializer=normalized_columns_initializer(0.01),
                                                      biases_initializer=None)
-                self.mean = slim.fully_connected(rnn_out, 3,
+                self.mean = slim.fully_connected(rnn_out, 1,  # 1 action instead of 3 actions
                                                  activation_fn=None,
-                                                 weights_initializer=normalized_columns_initializer(1.0),
+                                                 weights_initializer=normalized_columns_initializer(0.01),
                                                  biases_initializer=None)
                 self.variance = tf.squeeze(self.variance)
                 self.variance = tf.nn.softplus(self.variance) + 1e-5
                 self.normal_dist = tf.contrib.distributions.Normal(self.mean, self.variance)
                 self.actions = self.normal_dist._sample_n(1)
-                self.actions = [tf.clip_by_value(self.actions[0][0][0], -1, 1),
-                                tf.clip_by_value(self.actions[0][0][1], 0, 1),
-                                tf.clip_by_value(self.actions[0][0][2], 0, 1)]
+                # self.actions = [tf.clip_by_value(self.actions[0][0][0], -1, 1),
+                #                 tf.clip_by_value(self.actions[0][0][1], 0, 1),
+                #                 tf.clip_by_value(self.actions[0][0][2], 0, 1)]
+                self.actions = [tf.clip_by_value(self.actions[0][0][0], -1, 1)]  # 1 action instead of 3 actions
 
             self.value = slim.fully_connected(rnn_out, 1,
                                               activation_fn=None,
@@ -124,11 +125,12 @@ class AC_Network:
                     self.loss = 0.5 * self.value_loss + self.policy_loss - self.entropy_loss * 0.01
                 else:
                     self.steer = tf.placeholder(shape=[None], dtype=tf.float32)
-                    self.accelerate = tf.placeholder(shape=[None], dtype=tf.float32)
-                    self.brake = tf.placeholder(shape=[None], dtype=tf.float32)
+                    # self.accelerate = tf.placeholder(shape=[None], dtype=tf.float32)
+                    # self.brake = tf.placeholder(shape=[None], dtype=tf.float32)
 
                     epsilon = 1e-10
-                    actions = tf.stack([self.steer, self.accelerate, self.brake], axis=1)
+                    # actions = tf.stack([self.steer, self.accelerate, self.brake], axis=1)  # 3 actions
+                    actions = tf.stack([self.steer], axis=1)  # steering only
                     entropy = tf.reduce_sum(tf.log(self.variance + epsilon))
                     self.entropy_loss = -tf.reduce_sum(entropy)
 
@@ -204,8 +206,8 @@ class Worker:
             feed_dict = {self.local_AC.target_v: discounted_rewards,
                          self.local_AC.inputs: np.vstack(observations),
                          self.local_AC.steer: actions[:, 0],
-                         self.local_AC.accelerate: actions[:, 1],
-                         self.local_AC.brake: actions[:, 2],
+                         # self.local_AC.accelerate: actions[:, 1],
+                         # self.local_AC.brake: actions[:, 2],
                          self.local_AC.advantages: advantages,
                          self.local_AC.state_in[0]: rnn_state[0],
                          self.local_AC.state_in[1]: rnn_state[1]}
@@ -236,7 +238,6 @@ class Worker:
                 ob = self.env.reset(relaunch=False)
                 s = ob.img
 
-
                 # For state
                 s = process_frame(s)
 
@@ -266,7 +267,12 @@ class Worker:
                                        self.local_AC.state_in[0]: rnn_state[0],
                                        self.local_AC.state_in[1]: rnn_state[1]})
 
+                        a_t.append(0)  # add accel
+                        a_t.append(0)  # add brake
                         ob, r, d, info = self.env.step(a_t)
+                        del a_t[-1]  # delete accel
+                        del a_t[-1]  # delete brake
+                        r = r/1000
 
                     if not d:
                         s1 = ob.img
@@ -359,12 +365,12 @@ def initialize_variables(saver, sess, load_model):
 def play_training(training=True, load_model=True):
     with tf.device("/cpu:0"):
         global_episodes = tf.Variable(0, dtype=tf.int32, name='global_episodes', trainable=False)
-        #trainer = tf.train.RMSPropOptimizer(learning_rate=1e-4, decay=0.99, epsilon=1)
+        # trainer = tf.train.RMSPropOptimizer(learning_rate=1e-4, decay=0.99, epsilon=1)
         trainer = tf.train.AdamOptimizer(learning_rate=1e-4)
         master_network = AC_Network(s_size, a_size, 'global', None, False)
 
         if training:
-            #num_workers = multiprocessing.cpu_count()  # Set workers at number of available CPU threads
+            # num_workers = multiprocessing.cpu_count()  # Set workers at number of available CPU threads
             num_workers = 4
         else:
             num_workers = 1
