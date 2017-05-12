@@ -79,7 +79,7 @@ class TorcsEnv:
 
         # Apply Action
         action_torcs = client.R.d
-        
+
         # Steering
         if this_action['steerleft'] == True:
             action_torcs['steer'] += 1
@@ -171,7 +171,7 @@ class TorcsEnv:
 
         # Termination judgement #########################
         episode_terminate = False
-        if (abs(track.any()) > 1 or abs(trackPos) > 1):  # Episode is terminated if the car is out of track
+        if abs(track.any()) > 1 or abs(trackPos) > 1:  # Episode is terminated if the car is out of track
             reward = -200
             episode_terminate = True
             client.R.d['meta'] = True
@@ -277,30 +277,30 @@ class TorcsEnv:
         distance = np.array(obs['distRaced'])
 
         progress = sp * np.cos(obs['angle']) - np.abs(sp * np.sin(obs['angle'])) - sp * np.abs(obs['trackPos'])
-        #progress = distance
         reward = progress
+
         # collision detection
         if obs['damage'] - obs_pre['damage'] > 0:
             reward = -1
 
         # Termination judgement #########################
         episode_terminate = False
-        if track.min() < 0:  # Episode is terminated if the car is out of track
-            reward = - 1
+        if abs(track.any()) > 1 or abs(trackPos) > 1:  # Episode is terminated if the car is out of track
+            reward = -200
             episode_terminate = True
             client.R.d['meta'] = True
 
-        if self.terminal_judge_start < self.time_step: # Episode terminates if the progress of agent is small
-            if progress < self.termination_limit_progress:
-                episode_terminate = True
-                client.R.d['meta'] = True
-
-        if np.cos(obs['angle']) < 0: # Episode is terminated if the agent runs backward
+        if obs['lastLapTime'] > 0:
+            reward = 200
             episode_terminate = True
             client.R.d['meta'] = True
 
+        if np.cos(obs['angle']) < 0:  # Episode is terminated if the agent runs backward
+            reward = -200
+            episode_terminate = True
+            client.R.d['meta'] = True
 
-        if client.R.d['meta'] is True: # Send a reset signal
+        if client.R.d['meta'] is True:  # Send a reset signal
             self.initial_run = False
             client.respond_to_server()
 
