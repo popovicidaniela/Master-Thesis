@@ -1,12 +1,14 @@
 import threading
-import multiprocessing
 import scipy.signal
 import sys
 from helper import *
-from vizdoom import *
 from time import sleep
 from gym_torcs import TorcsEnv
-
+import numpy as np
+import tensorflow as tf
+import scipy.misc
+import os
+import tensorflow.contrib.slim as slim
 
 # Copies one set of variables to another.
 # Used to set worker network parameters to those of global network.

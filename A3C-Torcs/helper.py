@@ -1,12 +1,6 @@
 import numpy as np
-import random
 import tensorflow as tf
-import matplotlib.pyplot as plt
-import scipy.misc
-import os
 import csv
-import itertools
-import tensorflow.contrib.slim as slim
 
 
 # This is a simple function to reshape our game frames.
