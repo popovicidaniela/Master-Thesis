@@ -16,6 +16,7 @@ class TorcsEnv:
     terminal_judge_start = 100  # Speed limit is applied after this step
     termination_limit_progress = 5  # [km/h], episode terminates if car is running slower than this limit
     default_speed = 50
+    speed_ok = False
 
     initial_reset = True
 
@@ -104,21 +105,30 @@ class TorcsEnv:
         #for throttle
         if self.throttle is False:
             target_speed = self.default_speed
-            if client.S.d['speedX'] < target_speed - (client.R.d['steer']*50):
-                client.R.d['accel'] += .01
+            speed_okay = self.speed_ok
+            if client.S.d['speedX'] < target_speed - (client.R.d['steer']*50):   
+                client.R.d['accel'] += 0.2                                  #0.2 to around 30 km/h
+                
             else:
-                client.R.d['accel'] -= .01
+                client.R.d['accel'] -= 0.01
+                
 
             if client.R.d['accel'] > 0.2:
                 client.R.d['accel'] = 0.2
 
-            if client.S.d['speedX'] < 10:
-                client.R.d['accel'] += 1/(client.S.d['speedX']+.1)
+            if client.S.d['speedX'] < target_speed and speed_okay == False:		
+                client.R.d['accel'] += 1#/(client.S.d['speedX']+.1)
+                
+            #To go fast to target speed and then stop
+            if client.S.d['speedX'] > target_speed:
+                self.speed_ok = True    
 
-            # Traction Control System
+
+            #Traction Control System
             if ((client.S.d['wheelSpinVel'][2]+client.S.d['wheelSpinVel'][3]) -
                (client.S.d['wheelSpinVel'][0]+client.S.d['wheelSpinVel'][1]) > 5):
-                action_torcs['accel'] -= .2
+                action_torcs['accel'] -= 0.2
+                
 
         #  Automatic Gear Change by Snakeoil
         if self.gear_change is True:
@@ -161,6 +171,7 @@ class TorcsEnv:
         damage = np.array(obs['damage'])
         rpm = np.array(obs['rpm'])
         distance = np.array(obs['distRaced'])
+        #print ("Speed: ", sp)
 
         progress = sp * np.cos(obs['angle']) - np.abs(sp * np.sin(obs['angle'])) - sp * np.abs(obs['trackPos'])
         reward = progress
@@ -194,6 +205,7 @@ class TorcsEnv:
 
         if client.R.d['meta'] is True:  # Send a reset signal
             self.initial_run = False
+            self.speed_ok = False
             client.respond_to_server()
 
         self.time_step += 1

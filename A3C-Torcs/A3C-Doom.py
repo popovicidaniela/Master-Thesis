@@ -1,12 +1,14 @@
 import threading
-import multiprocessing
 import scipy.signal
 import sys
 from helper import *
-from vizdoom import *
 from time import sleep
 from gym_torcs import TorcsEnv
-
+import numpy as np
+import tensorflow as tf
+import scipy.misc
+import os
+import tensorflow.contrib.slim as slim
 
 # Copies one set of variables to another.
 # Used to set worker network parameters to those of global network.
@@ -295,7 +297,7 @@ class Worker:
 
                     # If the episode hasn't ended, but the experience buffer is full, then we
                     # make an update step using that experience rollout.
-                    if training and len(episode_buffer) == 100 and d is not True:  #batch to 100
+                    if training and len(episode_buffer) == 100 and d is not True:  #batch to 100 30 before 
                         # Since we don't know what the true final return is, we "bootstrap" from our current
                         # value estimation
                         v1 = sess.run(self.local_AC.value,
@@ -321,7 +323,7 @@ class Worker:
                     if training and self.name == 'worker_0' and episode_count % 50 == 0:
                         time_per_step = 0.05
                         images = np.array(episode_frames)
-                        make_gif(images, './frames/image' + str(episode_count) + '.gif',
+                        make_gif(images, './frames/image' + str(episode_count) +'_reward_' + str(episode_reward) + '.gif',
                                  duration=len(images) * time_per_step, true_image=True, salience=False)
                     if training and episode_count % 5 == 0 and self.name == 'worker_0':
                         saver.save(sess, self.model_path + '/model-' + str(episode_count) + '.cptk')
@@ -370,7 +372,7 @@ def play_training(training=True, load_model=True):
         master_network = AC_Network(s_size, a_size, 'global', None, False)
 
         if training:
-            # num_workers = multiprocessing.cpu_count()  # Set workers at number of available CPU threads
+            #num_workers = multiprocessing.cpu_count()  # Set workers at number of available CPU threads
             num_workers = 4
         else:
             num_workers = 1
