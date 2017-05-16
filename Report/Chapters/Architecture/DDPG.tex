@@ -1,6 +1,27 @@
 \section{Deep Deterministic Policy Gradient (DDPG)}
-As mentioned in Cref{sec:DQN} the Deep Q Network solves problems with high-dimensional observation space. But the problem is it can only handle discrete and low-dimensional action space. Many task of interest, most notably physical control tasks, have continuous (real valued) and high dimensional action spaces. The problem with the Deep Q Network is it cannot be applied to continuous domains since it relies on finding the action that maximizes action-value function. In the continuous valued case requires an iterative optimization process at every step. \cite{DBLP:journals/corr/LillicrapHPHETS15}
+As mentioned in \Cref{sec:DQN} the Deep Q Network solves problems with high-dimensional observation space. But the problem is it can only handle discrete and low-dimensional action space. Many task of interest, most notably physical control tasks, have continuous (real valued) and high dimensional action spaces. The problem with the Deep Q Network is it cannot be applied to continuous domains since it relies on finding the action that maximizes action-value function. In the continuous valued case requires an iterative optimization process at every step. \cite{DBLP:journals/corr/LillicrapHPHETS15}
 
 An obvious approach to adapting the Deep Q Network method to continuous domain is to simply discretize the action space. This have many limitation, most important the curse of dimensionality - the number of actions increases exponentially with the number of degrees of freedom. An example is the human arm is a 7 degrees of freedom system, with a assumption discretization $a_i \sim  \{-k,0,k\}$ for each joint leads to an action space with dimensionality: $3^7 = 2187$. This problem just become bigger with a finer discretion. Such a large action space makes it difficult to explore efficiently. Discretization of action spaces throws away information of the action domain.
 
-The Deep Deterministic Policy Gradient try to solve these problems. The Deep Deterministic Policy Gradient method is a model-free off-policy actor-critic algorithm using deep function approximators that can learn policies in high-dimensional, continuous action space.             
+The Deep Deterministic Policy Gradient try to solve these problems. The Deep Deterministic Policy Gradient method is a model-free off-policy actor-critic algorithm using deep function approximators that can learn policies in high-dimensional, continuous action space. 
+
+The DDPG algorithm uses some of the some of the deep learning tricks, which was used in the Deep Q Network (DQN) see \Cref{sec:DQN}. To explain more about this algorithm a car simulation environment called "Torcs" is used see \textbf{REF TO TORCS SECTION}. \cite{DDPG_Torcs} 
+
+\subsection{Algorithm}
+Even with the DDPG using some of the tricks from the DQN algorithm, it is not straight forward to apply the Q-learning to continuous action space. It is because in continuous action spaces finding a greedy policy requires an optimization of \textit{$a_t$} at every time step - this optimization is too slow to be practical with large, unconstrained function approximators and non trivial action spaces. Here is instead used an actor-critic approach based on the DPG (deterministic policy gradient) algorithm \cite{DBLP:conf/icml/SilverLHDWR14}
+
+The DPG algorithm use a parameterized actor function $\mu(s|\theta^\mu)$ which specifies the current policy by deterministically mapping states to a specific action. The critic $Q(s,a)$ is learned by using the Bellman equation as in Q-learning. The actor is updated by applying the chain rule to the expected return from the start distribution J with respect to the actor parameters:
+\begin{equation}
+\triangledown_{\theta^\mu} J \approx \mathbb{E}_{s_t \sim \rho^\beta} [\triangledown_{\theta^\mu}Q(s,a|\theta^Q)|_{s=s_t , a=\mu(s_t|\theta^\mu)}]  
+\newline
+\end{equation}
+\begin{equation}
+\triangledown_{\theta^\mu} J = \mathbb{E}_{s_t \sim \rho^\beta} [\triangledown_{a}Q(s,a|\theta^Q)|_{s=s_t , a=\mu(s_t)} \triangledown_{\theta_\mu}\mu(s|\theta^\mu)|_{s=s_t} ]
+\end{equation} 
+
+This was proved that it is the policy gradient - the gradient of the policy performance. 
+
+Introducing non-linear function approximators means that convergence is no longer guaranteed. The approximators is essential to learn and generalize on large state spaces. The DDPG contribution is to provide modification to DPG inspired of the succes of the DQN, which allow it to use neural networks function approximators to learn in state and action space online. 
+
+One of the challenges of using neural networks for reinforcement learning is that most optimization algorithms assume that the samples are independently  and identically distributed. To solve this problem a replay buffer is used, it is sampling a minibatch uniformly from the buffer - more about the replay buffer see \Cref{sec:DQN}. Because the DDPG is a off-policy algorithm, the replay buffer can be large, allowing the algorithm to benefit from learning across a set of uncorrelated transition.
+              
