@@ -215,4 +215,29 @@ The policy gradient methods are suitable for both \textit{discrete} and \textit{
 \nabla\eta(\theta)=\sum_{a}d_{\pi}(s)\sum_{a}q_{\pi}(s,a)\nabla_{\theta}\pi(a|s,\theta)
 \end{equation}
 
-The methods that use both policy and value approximations are named \textit{actor-critic} methods, where the \textit{actor} estimates the policy weights vector for choosing an action and the \textit{critic} estimates the value weights for providing the information about the quality of a state the agent ends up in after making the action according to the policy. So, the actor is about the learned policy, and the critic - about the learned value function.
+The methods that use both policy and value approximations are named \textit{actor-critic} methods, where the \textit{actor} estimates the policy weights vector for choosing an action and the \textit{critic} estimates the value weights for providing the information about the quality of a state the agent ends up in after making the action according to the policy. So, the actor is about the learned policy, and the critic - about the learned value function. 
+
+There is an algorithm which is called \textit{reinforce} and it also uses both policy and value function approximation, but it doesn't bootstrap. The critic, on the other hand, is a bootstrapping critic, which updates it's states based on the value estimates of the next states. So, the initial reinforce algorithm has been changed for the actor-critic method: it's full return was replaced by one-step return. The one-step actor critic algorithm is presented below \cite{Sutton}.
+\begin{algorithm}
+	\caption{One-step Actor-Critic (episodic)}
+	\label{algo:AC}
+	\begin{algorithmic}
+		\State Input: differentiable policy parameterization $\pi(a|s,\theta),\forall a\in A, s\in S,\theta\in\mathbb{R}^{n}$
+		\State Input: differentiable state-value parameterization $\hat{v}(s,w),\forall s \in S, w \in \mathbb{R}_{m}$
+		\State Parameters: $\alpha>0,\beta>0$
+		\State Initialize policy weights $\theta$ and state-value weights $w$
+		\Repeat
+		\State Initialize $S$ (first state of episode)
+		\State $I\leftarrow 1$
+		\While{$S$ is not terminal}:
+		\State $A\sim \pi(\cdot|S,\theta)$
+		\State Take action $S$, observe $S'$, $R$
+		\State $\delta\leftarrow R+\gamma\hat{v}(S',w)-\hat{v}(S,w)$ (if $S'$ is terminal, then $\hat{v}(S',w)=0$)
+		\State $w\leftarrow w+\beta\delta\nabla_{w}\hat{v}(S,w)$
+		\State $\theta\leftarrow \theta+\alpha I \delta\nabla_{\theta}\ha \textup{log} \pi(A|S,\theta)$
+		\State $I\leftarrow \gamma I$
+		\State $S\leftarrow S'$
+	\end{algorithmic}
+\end{algorithm}
+
+As it was mentioned before, policy gradient methods work for discrete action spaces as well as for continuous. In the discrete actions problem, the policy is estimating the probability of each action in the discrete set. In the continuous actions space, on the other hand, the policy approximates the variance $\sigma$ and the mean $\mu$ of a normal distribution, which composes the probability distribution of the continuous actions. Therefore, the policy weight vector is composed of two elements, $\theta_{\mu}$ and $\theta_{\sigma}$ that can be used in function approximation algorithms further.
