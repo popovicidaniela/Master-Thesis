@@ -28,7 +28,7 @@ The way they trained the Neural Network started with training a supervised learn
 
 By combining tree search with policy and value networks, \textit{AlphaGo} has reached a professional level in Go. In March 2016 \textit{AlphaGo} won 4-1 against the legendary Lee Sedol , the top Go player in the world over the past decade.  
 
-\subsection{Asynchronous Methods for Deep Reinforcement Learning}\cite{DBLP:journals/corr/MnihBMGLHSK16}
+\subsection{Asynchronous Methods for Deep Reinforcement Learning}\label{AsyncMeths}\cite{DBLP:journals/corr/MnihBMGLHSK16}
 This is another paper from the team behind \cite{DBLP:journals/corr/MnihKSGAWR13}, and was published in 2016. This paper provide a very different paradigm for deep reinforcement learning. Instead of experience replay, it asynchronously execute multiple agents in parallel, on multiple instances of the environment. 
 
 This simple idea enables much larger spectrum of on-policy reinforcement learning algorithm as well as off-policy reinforcement learning algorithm, to be applied robustly and effectively using deep neural networks.  It also offers practical benefits, this experiment is able to run on a single machine with a standard multi-core CPU, instead of specialized such as GPUs.

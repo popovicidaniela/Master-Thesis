@@ -205,7 +205,7 @@ A special structure of the network's architecture, like that of the deep \textit
 
 \textit{Recurrent neural networks} (RNN)
 
-\subsubsection{Policy Gradient Methods}
+\subsubsection{Policy Gradient Methods} \label{PolicyGradMeths}
 The \textit{Policy Gradient Methods} learn a \textit{parameterized policy} and makes it possible to select the action without calculating the value function. So, in a given state $s$, at a given time $t$, the agent selects an action $a$ based on the weights vector ${\theta}$ of the policy: ${\pi}(a|s,{\theta})=Pr\{A_{t}=a|S_{t}=s,{\theta}_{t}={\theta}\}$. The policy weights are learned according to an approximate gradient of a performance indicator ${\eta}({\theta})$ with respect to the policy weights, which tries to maximize the performance. All the methods of the form \Cref{gradM} are policy gradient methods:
 \begin{equation}\label{gradM}
 \theta_{t+1}=\theta_{t}+\alpha \nabla \eta (\theta_{t})
