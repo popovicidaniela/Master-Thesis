@@ -24,4 +24,73 @@ This was proved that it is the policy gradient - the gradient of the policy perf
 Introducing non-linear function approximators means that convergence is no longer guaranteed. The approximators is essential to learn and generalize on large state spaces. The DDPG contribution is to provide modification to DPG inspired of the succes of the DQN, which allow it to use neural networks function approximators to learn in state and action space online. 
 
 One of the challenges of using neural networks for reinforcement learning is that most optimization algorithms assume that the samples are independently  and identically distributed. To solve this problem a replay buffer is used, it is sampling a minibatch uniformly from the buffer - more about the replay buffer see \Cref{sec:DQN}. Because the DDPG is a off-policy algorithm, the replay buffer can be large, allowing the algorithm to benefit from learning across a set of uncorrelated transition.
-              
+
+\subsubsection{Update weights}
+Directly implementing the Q learning with neural networks is unstable in many environments. Since network $Q(s,a|\theta^Q)$ being updated is also used in calculating the target value, the Q update is likely to divergence. It is modified from the DQN algorithm for actor-critic using "soft" target updates, instead of directly updating the weights. This is done by creating a copy of the actor and critic networks, $Q'(s,a|\theta^{Q'})$ and $\mu'(s|\theta^{\mu'})$ respectively, they are used for calculating the target values. The weights of these target networks are then updated by having them slowly track the learned networks:
+\begin{equation}
+\theta' \leftarrow \tau \theta + (1-\tau)\theta'   \quad \textrm{with} \quad \tau \ll 1 
+\end{equation}   
+This means that the target values are constrained to change slowly, greatly improving the stability af learning. This change helps the unstable problem of learning the action-value function closer to the case of supervised learning, where a robust solution exist. The DDPG needs both a target $\mu'$ and $Q'$ was required to have stable targets $y_i$ in order to consistently train the critic without divergence. It may slow learning, since the target network delays the propagation of value estimations. In practice it is better because the stability of training is more important than the learning speed.
+
+\subsubsection{Batch normalization}
+Different components of the observation may have different physical units (for example, posistion versus velocities) and the ranges may changes through the different environments. This can make it difficult for the network to learn effectively and may make it difficult to find hyper-parameters which generalize across environments with different scales of state values.
+
+One approach to solve this problem is to manually scale the features so they have similar ranges across different environments and units . The way this problem is solved in the DDPG algorithm is by using a technique for deep learning called batch normalization. This technique normalize each dimension across the samples in a minibatch to have a unit mean and variance. It maintain a running average of the mean and variance to use for normalization during training, in the DDPG for exploration or evaluation. In a low-dimensional case the batch normalization is used on the state input an all layers of the actor network ($\mu$ network) and all layers of the critic network ($Q$ network) prior to the action input. With batch normalization the DDPG is able to learn effectively across many different tasks with different types of units, without needing to manually ensure units in different ranges.
+
+\subsubsection{Exploration}
+A major challenge of learning continuous action spaces is exploration. An advantage of off-policy algorithm such as DDPG is that it can treat problems of exploration independently from learning algorithm. The DDPG has an exploration policy $\mu'$ by adding noise sampled from a noise process $N$ to the actor policy:
+\begin{equation}
+\mu'(s_t) = \mu(s_t|\theta_t^\mu) + N
+\end{equation} 
+N can be choosen to suit the environment. The noise can be added using Ornstein-Uhlenbeck process to do the exploration.
+
+The DDPG algorithm can be seen on \Cref{algo:DDPG}, it is the algorithm DeepMind uses \cite{DBLP:journals/corr/LillicrapHPHETS15}.  
+
+
+
+\begin{algorithm}[H]
+	\caption{Deep Deterministic Policy Gradient (DDPG) algorithm}
+	\label{algo:DDPG}
+	\begin{algorithmic}[H]
+		\State Randomly Initialize critic network $Q(s,a|\theta^Q)$ and actor $\mu(s|\theta^\mu)$ with weights $\theta^Q$ and $\theta^\mu$
+		\State Initialize target network $Q'$ and $\mu'$ with weights $\theta^{Q'} \leftarrow \theta^{Q}, \theta^{\mu'} \leftarrow \theta^{\mu}$ 
+		\State Initialize replay Buffer $R$
+		\For {$episode = 1$ to M} 
+			\State Initialize a random process $N$ for action exploration
+			\State Receive initial observation state $s_1$
+			\For {$t = 1$ to T}
+				\State Select action $a_t = \mu(s_t|\theta^\mu + N_t)$ according to the current policy and exploration noise
+				\State Store transition $(s_t,a_t,r_t,s_{t+1})$ in $R$
+				\State Sample random minibatch of $N$ transitions$(s_i,a_i,r_i,s_{i+1})$ from $R$
+				\State Set $y_i = r_i+\gamma Q'(s_{i+1},\mu'(s{i+1}|\theta^{\mu'})|\theta^{Q'})$
+				\State Update critic by minimizing the loss: $L=\frac{1}{N} \sum_{i}(y_i - Q(s_i,a_i|\theta^Q))^2$
+				\State Update the actor policy using the sampled policy gradient:   
+		  			   \begin{equation*}
+		  			   \triangledown_{\theta^\mu} J = \frac{1}{N} \sum_{i} \triangledown_{a}Q(s,a|\theta^Q)|_{s=s_i , a=\mu(s_i)} \triangledown_{\theta_\mu}\mu(s|\theta^\mu)|_{s=s_i} 
+		  			   \end{equation*}
+		  		\State Update the target networks:
+		  			   \begin{equation*}
+		  			   \theta^{Q'} \leftarrow \tau \theta^Q + (1-\tau)\theta^{Q'} 
+		  			   \end{equation*}
+		  			   \begin{equation*}
+		  			   \theta^{\mu'} \leftarrow \tau \theta^\mu + (1-\tau)\theta^{\mu'} 
+		  			   \end{equation*}
+			\EndFor
+		\EndFor
+	\end{algorithmic}
+\end{algorithm}
+
+
+\subsection{Network}
+To use the DDPG algorithm 3 networks need to be created, an actor network, a critic network and a target network. To understand the structure of these networks, we will use an example from the torcs environment \cite{DDPG_Torcs}. In this example is the sensor input from the car used as the state of the environment. It has 29 different sensor inputs \cite{Data_from_Torcs}, so the state space has the size of 29. 
+
+\subsubsection{Actor network} 
+The Actor network is created using  2 hidden layers with 300 hidden units and 600 hidden units. The output consist of 3 continuous actions, Steering, which is a single unit with tanh activation function (where -1 means max right turn and +1 means max left turn). Acceleration, which is a single unit with sigmoid activation function (where 0 means no gas, 1 means full gas). Brake, another single unit with sigmoid activation function (where 0 means no brake, 1 full brake)  
+
+the final layer we used the normal initialization with $\mu = 0$ , $\sigma = 1e-4$ to ensure the initial outputs for the policy were near zero.
+
+\subsubsection{Critic network}
+The construction of the Critic Network is very similar to the Deep Q Network described in \Cref{sec:DQN}. The only difference is that we used 2 hidden layers with 300 and 600 hidden units. The critic network takes both the states and the action as inputs. According to the DDPG paper \cite{DBLP:journals/corr/LillicrapHPHETS15}, the actions were not included until the 2nd hidden layer of Q-network.
+
+\subsubsection{Target network}
+As described directly implementing Q-learning with neural networks proved to be unstable in many environments including TORCS. The way to solve this is by using the target network, where a copy of the critic networks and actor networks is created, there are used for calculating the target values. 
