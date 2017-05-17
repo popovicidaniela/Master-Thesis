@@ -243,5 +243,3 @@ There is an algorithm which is called \textit{reinforce} and it also uses both p
 \end{algorithm}
 
 As it was mentioned before, policy gradient methods work for discrete action spaces as well as for continuous. In the discrete actions problem, the policy is estimating the probability of each action in the discrete set. In the continuous actions space, on the other hand, the policy approximates the variance $\sigma$ and the mean $\mu$ of a normal distribution, which composes the probability distribution of the continuous actions. Therefore, the policy weight vector is composed of two elements, $\theta_{\mu}$ and $\theta_{\sigma}$ that can be used further in function approximation algorithms.
-
-This concludes the theoretical background chapter. This chapter presented the problem of reinforcement learning with it's mathematical model and the known basic solution methods. The next chapter presents the approaches of solving a real world problem, the problem of driver-less cars more precisely, with some of the advanced RL methods.
