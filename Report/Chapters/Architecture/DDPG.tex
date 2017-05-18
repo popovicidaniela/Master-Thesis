@@ -84,13 +84,41 @@ The DDPG algorithm can be seen on \Cref{algo:DDPG}, it is the algorithm DeepMind
 \subsection{Network}
 To use the DDPG algorithm 3 networks need to be created, an actor network, a critic network and a target network. To understand the structure of these networks, we will use an example from the torcs environment \cite{DDPG_Torcs}. In this example is the sensor input from the car used as the state of the environment. It has 29 different sensor inputs \cite{Data_from_Torcs}, so the state space has the size of 29. 
 
-\subsubsection{Actor network} 
-The Actor network is created using  2 hidden layers with 300 hidden units and 600 hidden units. The output consist of 3 continuous actions, Steering, which is a single unit with tanh activation function (where -1 means max right turn and +1 means max left turn). Acceleration, which is a single unit with sigmoid activation function (where 0 means no gas, 1 means full gas). Brake, another single unit with sigmoid activation function (where 0 means no brake, 1 full brake)  
+Before the actor and critic network are explained, the actor-critic algorithm will be explained. The Actor-Critic Algorithm is a hybrid method which combine the policy gradient method and the value function method. The policy is known as the actor, while the value function is the critic. The actor produce a action $a$ given the current state of the environment $s$ . The critic then produce a signal to criticizes the actions made by the actor. To refer to the human world is this a normal behavior, where the junior employee (actor) do the actual job and his boss (critic) criticizes the work and hopefully the junior employee can do it better next time. In the TORCS example, it uses the continuous Q-learning (SARSA) as the critic model and use policy gradient method as the actor model. The following figure explains the relationships between Value Function/Policy Function and Actor-Critic Algorithm.    
 
-the final layer we used the normal initialization with $\mu = 0$ , $\sigma = 1e-4$ to ensure the initial outputs for the policy were near zero.
+The tricks from the Deep Q Network is used, where the Q function is replaced with a neural network $Q^\pi(s,a) \approx Q(s,a,w)$ where w is the weight of the neural network. This end up with the formula for Deep Deterministic Policy Gradient:
+\begin{equation}
+\frac{\partial L(\theta)}{\partial \theta} =\frac{\partial Q(s,a,w)}{\partial a} \frac{\partial a}{\partial \theta}
+\end{equation}
+Where the policy parameters $\theta$ can be updated via stochastic gradient ascent.
+
+As in the DQN an iterative method is used to solve the Q-function, where the loss function is:
+\begin{equation}
+Loss = [r + \gamma Q(s',a') - Q(s,a)]^2
+\end{equation} 
+
+The Q-value can be used to estimate the values of the current actor policy. 
+
+The actor-critic algorithm can be seen on figure 
+
+\subsubsection{Actor network}
+The Actor network is created using  2 hidden layers with 300 hidden units and 600 hidden units. The output consist of 3 continuous actions, Steering, which is a single unit with tanh activation function (where -1 means max right turn and +1 means max left turn). Acceleration, which is a single unit with sigmoid activation function (where 0 means no gas, 1 means full gas). Brake, another single unit with sigmoid activation function (where 0 means no brake, 1 full brake). The actor network can be seen on \Cref{fig:DDPG_Actor_network}. The hidden layers are all full connected layers. To be able to send the actions to the game the three different actions (steering, acceleration and brake) has to be merge to the same action. 
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1\textwidth]{Figures/Architecture/DDPG/DDPG_Actor_network.pdf}
+	\caption{Actor network used in DDPG for playing TORCS }
+	\label{fig:DDPG_Actor_network}
+\end{figure}  
+
 
 \subsubsection{Critic network}
-The construction of the Critic Network is very similar to the Deep Q Network described in \Cref{sec:DQN}. The only difference is that we used 2 hidden layers with 300 and 600 hidden units. The critic network takes both the states and the action as inputs. According to the DDPG paper \cite{DBLP:journals/corr/LillicrapHPHETS15}, the actions were not included until the 2nd hidden layer of Q-network.
+The construction of the Critic Network is very similar to the Deep Q Network described in \Cref{sec:DQN}. The only difference is that we used 2 hidden layers with 300 and 600 hidden units. The critic network takes both the states and the action as inputs. According to the DDPG paper \cite{DBLP:journals/corr/LillicrapHPHETS15}, the actions were not included until the 2nd hidden layer of Q-network. This critic network can be seen on \Cref{fig:DDPG_Critic_network}. On the figure is there a third hidden layer, but it is still the second layer, just the state, merged with the actions in the second layer.
 
-\subsubsection{Target network}
-As described directly implementing Q-learning with neural networks proved to be unstable in many environments including TORCS. The way to solve this is by using the target network, where a copy of the critic networks and actor networks is created, there are used for calculating the target values. 
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1\textwidth]{Figures/Architecture/DDPG/DDPG_Critic_network.pdf}
+	\caption{Critic network used in DDPG for playing TORCS }
+	\label{fig:DDPG_Critic_network}
+\end{figure}  
+
