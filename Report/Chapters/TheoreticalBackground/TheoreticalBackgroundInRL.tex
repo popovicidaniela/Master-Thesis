@@ -150,7 +150,7 @@ On-policy methods have probabilities greater than zero for all their actions, me
 
 Off-policy methods use 2 policies: a \textit{target policy} $\pi$, which is a deterministic policy, like the one presented in the on-policy methods, and a \textit{behavior policy} $\mu$, which is stochastic in states and generates data by exploring. Both policies have non zero probabilities that ensures the coverage property. Off-policy methods can be implemented with \textit{importance sampling} technique. The importance sampling technique computes an importance sampling ratio based on the relative probabilities of the returns' trajectories from both policies and it is used for weighting the returns for learning the value function.
 
-\subsubsection{Temporal Difference}
+\subsubsection{Temporal Difference}\label{Temporal Difference}
 Temporal Difference differs from DP also in the way it handles the prediction problem. TD makes an estimate of the value function after each time step by sampling expected values and using current value estimates. Therefore, TD is a combination of MC sampling and DP bootstrapping. The simplest TD method is also called \textit{TD(0)}. The update function for TD(0) \ref{PolicyEvaluationTD0} is the following:
 \begin{equation}\label{PolicyEvaluationTD0}
 V(S_{t})\leftarrow V(S_{t})+\alpha \left [ R_{t+1}+\gamma V(S_{t+1})-V(S_{t}) \right ]
@@ -242,4 +242,4 @@ There is an algorithm which is called \textit{reinforce} and it also uses both p
 \end{algorithmic}
 \end{algorithm}
 
-As it was mentioned before, policy gradient methods work for discrete action spaces as well as for continuous. In the discrete actions problem, the policy is estimating the probability of each action in the discrete set. In the continuous actions space, on the other hand, the policy approximates the variance $\sigma$ and the mean $\mu$ of a normal distribution, which composes the probability distribution of the continuous actions. Therefore, the policy weight vector is composed of two elements, $\theta_{\mu}$ and $\theta_{\sigma}$ that can be used further in function approximation algorithms.
+As it was mentioned before, policy gradient methods work for discrete action spaces as well as for continuous. In the discrete actions problem, the policy is estimating the probability of each action in the discrete set. In the continuous actions space, on the other hand, the policy approximates the variance $\sigma^2$ and the mean $\mu$ of a normal distribution, which composes the probability distribution of the continuous actions. Therefore, the policy weight vector is composed of two elements, $\theta_{\mu}$ and $\theta_{\sigma}$ that can be used further in function approximation algorithms.
