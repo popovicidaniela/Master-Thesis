@@ -5,7 +5,7 @@ An obvious approach to adapting the Deep Q Network method to continuous domain i
 
 The Deep Deterministic Policy Gradient try to solve these problems. The Deep Deterministic Policy Gradient method is a model-free off-policy actor-critic algorithm using deep function approximators that can learn policies in high-dimensional, continuous action space. 
 
-The DDPG algorithm uses some of the some of the deep learning tricks, which was used in the Deep Q Network (DQN) see \Cref{sec:DQN}. To explain more about this algorithm a car simulation environment called "Torcs" is used see \textbf{REF TO TORCS SECTION}. \cite{DDPG_Torcs} 
+The DDPG algorithm uses some of the some of the deep learning tricks, which was used in the Deep Q Network (DQN) see \Cref{sec:DQN}. To explain more about this algorithm a car simulation environment called "TORCS" is used see \textbf{REF TO TORCS SECTION}. \cite{DDPG_Torcs} 
 
 \subsection{Algorithm}
 Even with the DDPG using some of the tricks from the DQN algorithm, it is not straight forward to apply the Q-learning to continuous action space. It is because in continuous action spaces finding a greedy policy requires an optimization of \textit{$a_t$} at every time step - this optimization is too slow to be practical with large, unconstrained function approximators and non trivial action spaces. Here is instead used an actor-critic approach based on the DPG (deterministic policy gradient) algorithm \cite{DBLP:conf/icml/SilverLHDWR14}
@@ -97,16 +97,21 @@ As in the DQN an iterative method is used to solve the Q-function, where the los
 Loss = [r + \gamma Q(s',a') - Q(s,a)]^2
 \end{equation} 
 
-The Q-value can be used to estimate the values of the current actor policy. 
+The Q-value can be used to estimate the values of the current actor policy. The actor-critic algorithm can be seen on figure \Cref{fig:Actor_critic_architecture} 
 
-The actor-critic algorithm can be seen on figure 
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.6\textwidth]{Figures/Architecture/DDPG/Actor_critic_architecture.pdf}
+	\caption{Actor-critic algorithm which is used in DDPG}
+	\label{fig:Actor_critic_architecture}
+\end{figure}
 
 \subsubsection{Actor network}
 The Actor network is created using  2 hidden layers with 300 hidden units and 600 hidden units. The output consist of 3 continuous actions, Steering, which is a single unit with tanh activation function (where -1 means max right turn and +1 means max left turn). Acceleration, which is a single unit with sigmoid activation function (where 0 means no gas, 1 means full gas). Brake, another single unit with sigmoid activation function (where 0 means no brake, 1 full brake). The actor network can be seen on \Cref{fig:DDPG_Actor_network}. The hidden layers are all full connected layers. To be able to send the actions to the game the three different actions (steering, acceleration and brake) has to be merge to the same action. 
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=1\textwidth]{Figures/Architecture/DDPG/DDPG_Actor_network.pdf}
+	\includegraphics[width=0.7\textwidth]{Figures/Architecture/DDPG/DDPG_Actor_network.pdf}
 	\caption{Actor network used in DDPG for playing TORCS }
 	\label{fig:DDPG_Actor_network}
 \end{figure}  
@@ -117,8 +122,40 @@ The construction of the Critic Network is very similar to the Deep Q Network des
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=1\textwidth]{Figures/Architecture/DDPG/DDPG_Critic_network.pdf}
+	\includegraphics[width=0.7\textwidth]{Figures/Architecture/DDPG/DDPG_Critic_network.pdf}
 	\caption{Critic network used in DDPG for playing TORCS }
 	\label{fig:DDPG_Critic_network}
 \end{figure}  
 
+\subsubsection{Training}
+The way the actor and critic network is used for learning how to play TORCS is: 
+\begin{enumerate}
+	\item The sensor data is received from the environment (TORCS) 
+	\item The sensor input will be fed into our Neural Network, and the network will output 3 real numbers (value of the steering, acceleration and brake)
+	\item The network will be trained many times, via the Deep Deterministic Policy Gradient, to maximize the future expected reward.
+\end{enumerate}
+
+The actual training is not that complicated. First update the critic by minimizing the loss:
+\begin{equation}
+L = \frac{1}{N} \sum_{i} (y_i - Q(s_i,a_i|\theta^Q))^2
+\end{equation}
+
+Then the actor policy is updated using the sampled policy gradient:
+\begin{equation}
+\triangledown_\theta J = \frac{\partial Q^\theta(s,a)}{\partial a} \frac{\partial a }{\partial \theta}
+\end{equation}
+
+$a$ is the deterministic policy: $a=\mu(s|\theta)$. It can be written as:
+\begin{equation}
+\triangledown_\theta J = \frac{\partial Q^\theta(s,a)}{\partial a} \frac{\partial \mu(a|\theta) }{\partial \theta}
+\end{equation}
+
+The last thing is to update the target network:
+\begin{equation}
+\theta^{Q'} \leftarrow \tau \theta^Q + (1-\tau)\theta^{Q'} 
+\end{equation}
+\begin{equation}
+\theta^{\mu'} \leftarrow \tau \theta^\mu + (1-\tau)\theta^{\mu'} 
+\end{equation}
+
+The results of the DDPG in TORCS" can be found in Ben Lau blog "Using Keras and Deep Deterministic Policy Gradient to play TORCS" \cite{DDPG_Torcs}.
