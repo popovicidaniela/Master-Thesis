@@ -205,7 +205,32 @@ A special structure of the network's architecture, like that of the deep \textit
 
 \subfile{Chapters/TheoreticalBackground/CNN}
 
-\textit{Recurrent neural networks} (RNN)
+\subsubsection{Recurrent neural networks (RNNs)}
+Recurrent neural networks (RNN) are used when the patterns in data change with time. RNNs have a simple structure with a built-in feedback loop allowing it to act as a forecasting engine. RNNs are applied in a large range of applications, from speech recognition to driver-less cars. Unlike feedforward neural networks where the data flows in one direction only, while in RNN the output of the layer is added to the input of the same layer, which represents the whole network. This results in a loop like network. The flow can be viewed or interpreted as a time passage where at each time-step the same layer receives it's own output from the previous time-step and adds it up to the input part together with the new data received \cite{RNNvideo}. 
+
+Unlike feedforward ANNs, RNNs can work with sequences of data inputs and, subsequently, to output sequences of data in return. Not only RNNs use sequence of data, but also these sequences can vary in their size, so different sizes of sequences can be adapted by the RNN dynamically. Another key feature of the RNN is the dependency of the training examples. Unlike feedforward ANNs, where the training examples are independent of each other, the RNNs treat temporal dependencies, meaning that a sequence of e.g. words is usually dependent on what came before \cite{NeonRNN}. These new features open a new range of applications like image captioning (single input, sequence output), document classification (sequence input, single output), video frames classification (sequence input, sequence output), demand and supply chain planning forecasting (with added time delay) \cite{RNNvideo}.
+
+In order to understand better the recurrent neuron functionality, the Figure \ref{Units} presents a comparison between the RNN unit and the linear unit used in feedforward ANNs.
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{Figures/RecurrentUnit}
+	\caption{Linear vs. Recurrent unit}
+	\label{Units}
+\end{figure}
+A linear unit's output is the input $x_{j}$ times the weight matrix $W_{ij}$ which is then passed to an activation function $g$.
+\begin{equation}\label{linearOutput}
+y_{i}=g(\sum_{j}W_{ij}x_{j}+b)
+\end{equation}
+
+The recurrent unit is composed of a linear unit, but then it adds a recurrent weight $W_{R}$, therefore the output  $h^{(t)}$ depends on both the input $x_{t}$ and the activity at the previous time-step. To retrieve an output $y_{t}$ from the layer, a non linear activation function $g_{y}$ is applied to the $h^{(t)}$ \cite{NeonRNN}.
+\begin{equation}\label{recurrentOutput}
+\begin{aligned}
+h^{(t)}&=g_{h}(W_{I}x^{(t)}+W_{R}h^{(t-1)}+b_{h})\\
+y^{(t)}&=g_{y}(W_{y}h^{(t)}+b_{y})
+\end{aligned}
+\end{equation}
+
+A deep RNN is exhaustively hard to train and it also causes the problem of over-fitting. In order to address it there are different gating solutions available. Gating is a technique for deciding when to forget the current input, and when to remember it for future time steps \cite{RNNvideo}. The most famous approaches are \textit{long short-term memory} (LSTM) and \textit{gated recurrent units} (GRU).
 
 \subsubsection{Policy Gradient Methods} \label{PolicyGradMeths}
 The \textit{Policy Gradient Methods} learn a \textit{parameterized policy} and makes it possible to select the action without calculating the value function. So, in a given state $s$, at a given time $t$, the agent selects an action $a$ based on the weights vector ${\theta}$ of the policy: ${\pi}(a|s,{\theta})=Pr\{A_{t}=a|S_{t}=s,{\theta}_{t}={\theta}\}$. The policy weights are learned according to an approximate gradient of a performance indicator ${\eta}({\theta})$ with respect to the policy weights, which tries to maximize the performance. All the methods of the form \Cref{gradM} are policy gradient methods:
