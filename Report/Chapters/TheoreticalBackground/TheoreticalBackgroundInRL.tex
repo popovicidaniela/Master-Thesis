@@ -203,7 +203,7 @@ In order to find the gradient, an ANN can use the back-propagation algorithm. In
 
 A special structure of the network's architecture, like that of the deep \textit{convolutional networks} (CNN) would make it possible to use the back-propagation algorithm in deep ANNs, too. CNN is a very important type of ANN that is especially used for finding spatially correlated patterns in images while sharing weights and excluding the need of full connectivity between units.
 
-\input{Chapters/TheoreticalBackground/CNN}
+\subfile{Chapters/TheoreticalBackground/CNN}
 
 \subsubsection{Recurrent neural networks (RNNs)}
 Recurrent neural networks (RNN) are used when the patterns in data change with time. RNNs have a simple structure with a built-in feedback loop allowing it to act as a forecasting engine. RNNs are applied in a large range of applications, from speech recognition to driver-less cars. Unlike feedforward neural networks where the data flows in one direction only, while in RNN the output of the layer is added to the input of the same layer, which represents the whole network. This results in a loop like network. The flow can be viewed or interpreted as a time passage where at each time-step the same layer receives it's own output from the previous time-step and adds it up to the input part together with the new data received \cite{RNNvideo}. 
@@ -211,6 +211,7 @@ Recurrent neural networks (RNN) are used when the patterns in data change with t
 Unlike feedforward ANNs, RNNs can work with sequences of data inputs and, subsequently, to output sequences of data in return. Not only RNNs use sequence of data, but also these sequences can vary in their size, so different sizes of sequences can be adapted by the RNN dynamically. Another key feature of the RNN is the dependency of the training examples. Unlike feedforward ANNs, where the training examples are independent of each other, the RNNs treat temporal dependencies, meaning that a sequence of e.g. words is usually dependent on what came before \cite{NeonRNN}. These new features open a new range of applications like image captioning (single input, sequence output), document classification (sequence input, single output), video frames classification (sequence input, sequence output), demand and supply chain planning forecasting (with added time delay) \cite{RNNvideo}.
 
 In order to understand better the recurrent neuron functionality, the Figure \ref{Units} presents a comparison between the RNN unit and the linear unit used in feedforward ANNs.
+
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.5\textwidth]{Figures/RecurrentUnit}
@@ -222,7 +223,7 @@ A linear unit's output is the input $x_{j}$ times the weight matrix $W_{ij}$ whi
 y_{i}=g(\sum_{j}W_{ij}x_{j}+b)
 \end{equation}
 
-The recurrent unit is composed of a linear unit, but then it adds a recurrent weight $W_{R}$, therefore the output  $h^{(t)}$ depends on both the input $x_{t}$ and the activity at the previous time-step. To retrieve an output $y_{t}$ from the layer, a non linear activation function $g_{y}$ is applied to the $h^{(t)}$ \cite{NeonRNN}.
+The recurrent unit is composed of a linear unit, but then it adds a recurrent weight $W_{R}$, therefore the output $h^{(t)}$ depends on both the input $x_{t}$ and the activity at the previous time-step. To retrieve an output $y_{t}$ from the layer, a non linear activation function $g_{y}$ is applied to the $h^{(t)}$ \cite{NeonRNN}.
 \begin{equation}\label{recurrentOutput}
 \begin{aligned}
 h^{(t)}&=g_{h}(W_{I}x^{(t)}+W_{R}h^{(t-1)}+b_{h})\\
@@ -230,13 +231,49 @@ y^{(t)}&=g_{y}(W_{y}h^{(t)}+b_{y})
 \end{aligned}
 \end{equation}
 
-A deep RNN is exhaustively hard to train and it also causes the problem of over-fitting. In order to address it there are different gating solutions available. Gating is a technique for deciding when to forget the current input, and when to remember it for future time steps \cite{RNNvideo}. The most famous approaches are \textit{long short-term memory} (LSTM) and \textit{gated recurrent units} (GRU).
+For example, in case of word prediction, the input of a unit can be a word, and the output of that unit would be the predicted next word that follows the one that was input; then, when the next input comes in at the next time-step, the process is applied, but also with the activity at the previous time-step taken into account.
+
+The training of RNNs is different than that of the other ANNs, because RNNs emit an output at each time-step, and, therefore, there is a cost function at each time-step, whereas before, in feedforward networks, it was necessary to run the input through the whole network in order to get an output comparable to the one and only cost function. Another special characteristic of the RNNs is that the weights $W_{R}$ are shared across the network. So, the gradients from all the time-steps can be combined together to obtain the weights update and do back-propagation. But, because of the shared weights the update would scale with the size of the $W_{R}$, the back-propagation has to be done all the way until time-step zero, which causes the problem of vanishing and exploding gradients \cite{NeonRNN}.
+
+In order to address the problems of training deep RNNs there are different solutions available. Among the known solutions are the use of the RMSProp optimizer for learning rate adjustment, clipping gradients, ReLu activation functions, special weight initialization, or to use \textit{gating} \cite{NeonRNN}. Gating is a technique for deciding when to forget the current input, and when to remember it for future time steps \cite{RNNvideo}. The most famous approaches are \textit{long short-term memory} (LSTM) and \textit{gated recurrent units} (GRU).
+
+LSTM has at it's core a memory cell $C$ with a recurrent weight $W_{C}=1$ that inherits the activity of the previous time-step. This memory cell has three manipulations: \textit{forget} (flush the memory), \textit{input} (add to the memory), and \textit{output} (retrieve from the memory) \cite{NeonRNN}. The activity of the memory cell $C_{t}$ is taken and passed through a tanh activation function and multiplied by the \textit{gate}. The gate is an affine layer, or a 'standard' feedforward ANN layer, that has as inputs $x_{t}$ at the current time-step and $h_{t-1}$ of the previous time-step that are together multiplied by the weight $W_{0}$, summed and passed through the sigmoid activation function $\sigma$ to return a vector of numbers between $0$ and $1$. The gate operation for generating the \textit{output} $h_{t}$, or for getting the information from the memory cell $C_{t}$, is presented in the following equation:
+\begin{equation}\label{gate}
+\begin{split}
+h_{t}&=\sigma(W_{0}\cdot \left [ x_{t} h_{t-1} \right ]+b_{0})\odot \textup{tanh}(C_{t})\\
+&=o_{t}\odot \textup{tanh}(C_{t})
+\end{split}
+\end{equation}
+
+The same approach is used for the \textit{forget} operation $f_{t}$. A layer before the final output is introduced, but with different weights, $W_{f}$. If the output of the forget gate is $0$, means that the memory has been flushed completely, whereas if the output is all $1$s then the memory retained everything \cite{NeonRNN}. The \textit{input} for the next time-step has two affine layers, one for generating new input $\widetilde{C_{t}}$ for the memory cell with the weights $W_{C}$ and tanh activation function, and another one $i_{t}$ that modulates the input and writes it into the memory cell with the weights $W_{i}$ and the sigmoid $\sigma$ activation function. All the components of the LSTM structure are vectors with numbers between $0$ and $1$, and they can be handled to perform either of the available manipulations. The summarized presentation of the LSTM components with the corresponding affine layers is illustrated in the Figure \ref{LSTMcore} \cite{NeonRNN}.
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.9\textwidth]{Figures/LSTM}
+	\caption{LSTM functionality}
+	\label{LSTMcore}
+\end{figure}
+
+Having explained the LSTM functionality, the formula for computing the next time-step activity $C_{t+1}$ is the following:
+\begin{equation}\label{LSTM}
+C_{t+1}=f_{t}\odot C_{t}+i_{t}\odot \widetilde{C_{t}}
+\end{equation}
+
+The GRU gating approach is a simplified version of the LSTM. It actually combines all the gates into a single update:
+\begin{equation}\label{GRU}
+\begin{aligned}
+h_{t}&=(1-z_{t})\cdot h_{t-1}+z_{t}\cdot \widetilde{h_{t}}\\
+z_{t}&=\sigma(W_{z}\cdot[h_{t-1},x_{t}]) \textup{ (update gate)}\\
+\widetilde{h_{t}}&=\textup{tanh}(W\cdot[r_{t}\cdot h_{t-1},x_{t}]) \textup{ (input gate)}\\
+r_{t}&=\sigma(W_{r}\cdot[h_{t-1},x_{t}]) \textup{ (remember gate)}
+\end{aligned}
+\end{equation}
 
 \subsubsection{Policy Gradient Methods} \label{PolicyGradMeths}
 The \textit{Policy Gradient Methods} learn a \textit{parameterized policy} and makes it possible to select the action without calculating the value function. So, in a given state $s$, at a given time $t$, the agent selects an action $a$ based on the weights vector ${\theta}$ of the policy: ${\pi}(a|s,{\theta})=Pr\{A_{t}=a|S_{t}=s,{\theta}_{t}={\theta}\}$. The policy weights are learned according to an approximate gradient of a performance indicator ${\eta}({\theta})$ with respect to the policy weights, which tries to maximize the performance. All the methods of the form \Cref{gradM} are policy gradient methods:
 \begin{equation}\label{gradM}
 \theta_{t+1}=\theta_{t}+\alpha \nabla \eta (\theta_{t})
 \end{equation}
+
 The policy gradient methods are suitable for both \textit{discrete} and \textit{continuous} action spaces. For the discrete action space problems parameterized numerical preferences can be formed for each state-action pair, $h(s,a,\theta)$ \cite{Sutton}. The most preferred actions in each state have the highest probability of getting selected. The preferences can be parameterized randomly, for example, by being computed by a deep Q-network. The policy gradient theorem provides a formula for computing the gradient of the performance measure $\eta$ with respect to the policy weights vector $\theta$, composed of the state distribution $d_{\pi}(s)$, the state-action value function $q_{\pi}(s,a)$, and the gradient of the policy $\nabla_{\theta}\pi(a|s,\theta)$:
 \begin{equation}\label{gradMTheorem}
 \nabla\eta(\theta)=\sum_{a}d_{\pi}(s)\sum_{a}q_{\pi}(s,a)\nabla_{\theta}\pi(a|s,\theta)
