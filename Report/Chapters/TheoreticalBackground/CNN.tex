@@ -28,6 +28,36 @@ When dealing with high dimensional inputs like images, it is impractical to conn
 	\label{fig:Respective_field}
 \end{figure}
 
+\textbf{Spatial arrangement}
+After describing the connectivity of each neuron in the convolutional layer to the input volume, this is done by describing the spatial arrangement. Spatial arrangement include how many neurons there are in the output volume and how they are arranged. Three hyperparameters control the size of the output volume - the depth, stride and zero-padding. 
+
+The first hyperparameter is the depth, it correspond to how many filters the convolutional layer use. Each filter looking for something different in the input. An example is the convolutional layer takes a raw image as an input, then different neurons along the depth dimension may activate in presence of various oriented edges or blobs of colors. A set of neurons that are all looking at the same region of the input is called \textit{depth colum}n or \textit{fibre}
+
+Another hyperparameter is the stride - it defines the stride the filters is slide over the input. If the stride is 1 the filters move one pixel at a time. When the stride is 2 then the filters jump 2 pixels at a time as the filters is slided around. This will produce smaller output volumes spatially.
+
+The last hyperparameter to control the size of the output volume is the size of zero-padding. Zero-padding pad the input volume with zeros around the border. The good feature with zero-padding is it control the spatial size of the output volumes. This is useful to preserve the spatial size of the input volume so the input and output width and height are the same. 
+
+The way to compute the spatial size of the output volume as a function of the input volume size ($\textbf{W}$), the receptive field size of the convolutional layer neurons($\textbf{F}$), the stride with which they are applied ($\textbf{S}$) and the amount of zero padding used ($\textbf{P}$) on the border. The formula for calculating how many neurons "fit" is:
+\begin{equation}
+\frac{W-F+2P}{S}+1
+\end{equation}    
+An example for a 5x5 input and a 3x3 filter with stride 1 and zero-padding 1 the output would be of the spatial size 5x5:
+\begin{equation}
+\frac{5-3+2\cdot1 }{1}+1         \rightarrow             \frac{4}{1}+1 =5
+\end{equation} 
+And with stride 2 the output would be 3x3:
+\begin{equation}
+\frac{7-3+2\cdot1 }{2}+1         \rightarrow             \frac{4}{2}+1 =3
+\end{equation} 
+The visualization can be seen on the figure below \Cref{fig:Spatial_size}: 
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1\textwidth]{Figures/Spatial_size.pdf}
+	\caption{Illustration of spatial arrangement. The example is described above. In this example there is only one spatial dimension (x-axis), one neuron with a receptive field size of F = 3, the input size is W = 5, and there is zero padding of P = 1. \textbf{Left:} The neuron strided across the input in stride of S = 1. \textbf{Right:} The neuron uses stride of S = 2
+	The neuron weights are in this example [1,0,-1] (shown on very right), and its bias is zero. These weights are shared across all yellow neurons. \cite{CNN_course}}
+	\label{fig:Spatial_size}
+\end{figure} 
 
 \subsubsection*{Fully connected Layer }
 The fully connected layer is a traditional Multi Layer Perceptron. The term “Fully Connected” implies that every neuron in the previous layer is connected to every neuron on the next layer. The output from the convolutional layers represent a high-level features of the input image. The purpose of the Fully Connected layer is to use these features for classifying the input image into various classes. 
