@@ -59,6 +59,26 @@ The visualization can be seen on the figure below \Cref{fig:Spatial_size}:
 	\label{fig:Spatial_size}
 \end{figure} 
 
+\subsubsection*{Summary of convolutional layers}
+To summarize the convolutional layer
+\begin{itemize}
+	\item Accept a input volume of size $W_1 \times  H_1 \times  D_1$
+	\item Requires four hyperparameters:
+	\begin{itemize}
+		\item Number of filters $K$
+		\item The receptive field size of the Convolutional Layer neurons $F$ 
+		\item The stride $S$
+		\item The amount of zero-padding $P$ 
+	\end{itemize}
+	\item Output a volume of size $W_2 \times  H_2 \times  D_2$
+	\begin{itemize}
+		\item $W_2 = \frac{W_1-F+2P}{S}+1$
+		\item $H_2 = \frac{H_1-F+2P}{S}+1$
+		\item $D_2 = K$
+	\end{itemize}
+	\item In the output volume the $d$-th depth slide (of side $W_2 \times  H_2$) s the result of performing a valid convolution of the $d$-th filter over the input volume with a stride of $S$, and then offset by $d$-th bias
+\end{itemize}
+
 \subsubsection*{Fully connected Layer }
 The fully connected layer is a traditional Multi Layer Perceptron. The term “Fully Connected” implies that every neuron in the previous layer is connected to every neuron on the next layer. The output from the convolutional layers represent a high-level features of the input image. The purpose of the Fully Connected layer is to use these features for classifying the input image into various classes. 
 

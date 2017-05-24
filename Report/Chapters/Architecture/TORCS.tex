@@ -1,0 +1,37 @@
+\section{TORCS (The Open Racing Car Simulator)}
+\label{sec:TORCS}
+The environment to use in reinforcement learning is important, because it is here all the learning will be done. This project is about using reinforcement learning to learn a car how to drive. After reading the post \cite{DDPG_Torcs} that uses TORCS in combination with Gym-TORCS. This project will use the same environment because it seems like it will make a good simulation environment for the task in this project. It is also an environment DeepMind has also used the TORCS environment to test their algorithms \cite{DBLP:journals/corr/LillicrapHPHETS15} and \cite{DBLP:journals/corr/MnihBMGLHSK16}, it is a thereby a well known environment to use in reinforcement learning. 
+
+The Open Racing Car Simulator or TORCS is a highly portable multi platform car racing simulation. It is used as ordinary car racing game, as AI racing game and as research platform. The source code of TORCS is licensed under the GPL ("Open Source") \cite{TORCS_website}. 
+
+Gym-TORCS is the reinforcement learning environment in TORCS domain. It is made so it have an interface witch matched Open-AI - A toolkit for developing and comparing reinforcement learning algorithms. It supports teaching agents everything from walking to playing games like Pong or Go \cite{OPENAI_website}. It is smart to match the Open-AI interface because it combines a lot of environment to solve different reinforcement learning tasks. This is done by a simple interface to make it easier to use. \cite{Gym_TORCS_website}.
+
+Some points why TORCS is useful as an environment for reinforcement learning:
+\begin{itemize}
+	\item The AI can learn how to drive
+	\item It is possible to visualize how the neural networks learn over time and inspect its learning process. Instead of only looking at the final result
+	\item It is easy to visualize when the neural network gets stuck in a local minimum.
+	\item Gives an understanding of machine learning technique in automated driving, which is important for self-driving car technologies 
+\end{itemize}
+      
+\subsection{Uses in this project}      
+The way this environment has been used in this project is by getting information from the TORCS domain. This information could be the gamescreen, so the pixels of the game. Another thing the environment has been used for is to send commands to the game - this could be in what direction the car should turn.
+
+The reinforcement learning should be able to train a network, where the input to the network is the information coming from the game. The output from the network is the determined action, which then will be send to the game. This interaction between the game and the network can be seen on \Cref{fig:TORCS_interaction}.    
+ 
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1\textwidth]{Figures/Architecture/TORCS_interaction.pdf}
+	\caption{The interaction between the game TORCS) and the network }
+	\label{fig:TORCS_interaction}
+\end{figure}
+
+ 
+As seen on \Cref{fig:TORCS_interaction} the game which in this project is TORCS, sends the screen of the game. Then some preprocessing is happening for getting this image to the right format, so the network is able to analyze it.
+
+The first thing which is done in the preprocessing is to make the image to grayscale. This is done by taken the RGB-image array($64 \times 64 \times 3$) and separate the 3 color channels red, green and blue. These RGB-values is converted to grayscale values by forming a weighted sum of the R, G and B components:
+\begin{equation}
+grayscale = 0.2989 \cdot R + 0.5870 \cdot G + 0.1140 \cdot B 
+\end{equation}  
+
+   
