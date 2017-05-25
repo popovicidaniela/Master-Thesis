@@ -27,11 +27,13 @@ According to the paper \cite{DBLP:journals/corr/MnihBMGLHSK16}, for the asynchro
 
 Both RMSProp and Adam optimizers are available in the tensorflow library, and, therefore, were easily tried out and analyzed for the current project, A3C TORCS. A comparison of the two optimizers will be elaborated next, based on the tensorboard graphs generated while training the ANN.
 
-The Figure \ref{fig:RMSPropReward} illustrates the difference in performance between RMSProp and Adam optimizers at the same learning rate of $10^{-5}$. The x-axis represents the steps, and the y-axis represents the value of the accumulated reward.
+The Figure \ref{fig:OptimizersReward} illustrates the difference in performance between RMSProp and Adam optimizers at the same learning rate of $10^{-5}$, and it also shows the performance of the best learning rate of $10^{-4}$. The x-axis represents the steps, and the y-axis represents the value of the accumulated reward.
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=\textwidth]{Figures/RMSPropReward}
-	\caption{RMSProp vs. Adam performance at the learning rate of $10^{-5}$}
-	\label{fig:RMSPropReward}
+	\includegraphics[width=\textwidth]{Figures/OptimizersReward}
+	\caption{RMSProp vs. Adam at learning rate $10^{-5}$; and $10^{-5}$ vs. $10^{-4}$ Adam learning rates}
+	\label{fig:OptimizersReward}
 \end{figure}
-From the Figure \ref{fig:RMSPropReward} it is possible to infer that the Adam optimizer is performing better, because it reaches the total reward of $10$ after around 2.500k steps, while the RMSProp reaches it after around 3.200k steps. 
+From the Figure \ref{fig:OptimizersReward} it is possible to infer that the Adam optimizer is performing better that the RMSProp, because it reaches the total reward of $10$ after around 2.500k steps, while the RMSProp reaches it after around 3.200k steps.
+
+The optimizers were also tried out with different learning rates, and it turned out that the best learning rate for the Adam optimizer is 1e-4, which converges the fastest to the best solution. It is possible to see in the graph that only after 320 steps it started to converge to the optimal solution. Learning rates higher that $10^{-4}$ have been tried out as well, and it was possible to see that the training would never converge, whereas learning rates lower than $10^{-5}$ would slow the training much more.
