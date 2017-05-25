@@ -1,4 +1,12 @@
 \chapter{Results}
+For monitoring and understanding better the training process, some performance and loss measures were taken into account in generating graphs. The relevant performance measures are the length of the episode, accumulated reward, and the value function result. These values should be growing. The length of the episode grows until the agent has been trained to drive the whole lap. The more the car stays in the game and the better it drives, the more reward it gets and the better value function results. If the car crashes then the length of the episode is short, and because it is learning, the graph should show an increasing curve as the training advances. The loss measures are the ones that participate in the composition of the loss function. These include policy, value, and entropy losses. These results should show a decreasing curve as the loss is being minimized with each step and the estimations become more accurate.
+
+The following figure presents the results of training an agent using A3C: 4 workers in parallel, the Adam optimizer with the learning rate of $10^{-4}$. 
+
+As we can see from the figure the training has finished when the agent learned to drive the whole lap and the monotonicity of the plotted curves are as expected. The training time elapsed was $40$ hours. The trained agent was played on different tracks to prove that it learned to drive, but more about this in the Tracks section.
+
+The chapter continues with presenting the different scenarios that offer insights in performance and environment manipulations. More precisely, the performance of two different optimizers will be compared, the scenarios with different number of workers will be presented, and different action spaces. The environment specific experiments list some manipulations with the reward function, acceleration and playing the trained agent on other tracks.
+
 %network
 \input{Chapters/Results/Optimizers}
 \input{Chapters/Results/Multithreading}

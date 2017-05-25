@@ -26,3 +26,12 @@ g_{t+1}&=\alpha_{2} g_{t} + (1-\alpha_{2})\Delta \theta^2\\
 According to the paper \cite{DBLP:journals/corr/MnihBMGLHSK16}, for the asynchronous deep RL methods like the case of A3C, the RMSProp optimizer with shared weights between threads is more robust and also reduces memory requirements than per-thread weights method. So, shared statistics were used for all the scenarios.
 
 Both RMSProp and Adam optimizers are available in the tensorflow library, and, therefore, were easily tried out and analyzed for the current project, A3C TORCS. A comparison of the two optimizers will be elaborated next, based on the tensorboard graphs generated while training the ANN.
+
+The Figure \ref{fig:RMSPropReward} illustrates the difference in performance between RMSProp and Adam optimizers at the same learning rate of $10^{-5}$. The x-axis represents the steps, and the y-axis represents the value of the accumulated reward.
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{Figures/RMSPropReward}
+	\caption{RMSProp vs. Adam performance at the learning rate of $10^{-5}$}
+	\label{fig:RMSPropReward}
+\end{figure}
+From the Figure \ref{fig:RMSPropReward} it is possible to infer that the Adam optimizer is performing better, because it reaches the total reward of $10$ after around 2.500k steps, while the RMSProp reaches it after around 3.200k steps. 
