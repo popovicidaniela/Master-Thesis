@@ -22,16 +22,24 @@ The reinforcement learning should be able to train a network, where the input to
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=1\textwidth]{Figures/Architecture/TORCS_interaction.pdf}
-	\caption{The interaction between the game TORCS) and the network }
+	\caption{The interaction between the game (TORCS) and the network }
 	\label{fig:TORCS_interaction}
 \end{figure}
 
  
-As seen on \Cref{fig:TORCS_interaction} the game which in this project is TORCS, sends the screen of the game. Then some preprocessing is happening for getting this image to the right format, so the network is able to analyze it.
+As seen on \Cref{fig:TORCS_interaction} the screen is taken from the game, which in this project is TORCS. The screen is the state in our reinforcement learning algorithm. The image screen in this case is size $64 \times 64$ and have 3 color channel - red, green and blue. Then some preprocessing is happening for getting this image to the right format, so the network is able to analyze it.
 
-The first thing which is done in the preprocessing is to make the image to grayscale. This is done by taken the RGB-image array($64 \times 64 \times 3$) and separate the 3 color channels red, green and blue. These RGB-values is converted to grayscale values by forming a weighted sum of the R, G and B components:
+The first, which is done in the preprocessing is to make the image to grayscale. This is done by taken the RGB-image array($64 \times 64 \times 3$) and separate the 3 color channels red, green and blue. These RGB-values is converted to grayscale values by forming a weighted sum of the R, G and B components:
 \begin{equation}
 grayscale = 0.2989 \cdot R + 0.5870 \cdot G + 0.1140 \cdot B 
 \end{equation}  
 
+The network will then take $64 \times 64 $ image as inputs, more about the network, there are used in this project, is described in \Cref{sec:A3C}. The network then uses this input to find the best action, in this state(screen of the game).
+
+The action the network has found, is then send to the game. The game will then behave after this action and send an reward back to the network. This reward is then uses to learn the network how to play the game - this is also called training of the network. This procedure continues until the maximum reward is achieved.   
+ 
+
+ 
+
+ 
    

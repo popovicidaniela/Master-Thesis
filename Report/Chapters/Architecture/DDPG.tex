@@ -5,7 +5,7 @@ An obvious approach to adapting the Deep Q Network method to continuous domain i
 
 The Deep Deterministic Policy Gradient try to solve these problems. The Deep Deterministic Policy Gradient method is a model-free off-policy actor-critic algorithm using deep function approximators that can learn policies in high-dimensional, continuous action space. 
 
-The DDPG algorithm uses some of the some of the deep learning tricks, which was used in the Deep Q Network (DQN) see \Cref{sec:DQN}. To explain more about this algorithm a car simulation environment called "TORCS" is used see \textbf{REF TO TORCS SECTION}. \cite{DDPG_Torcs} 
+The DDPG algorithm uses some of the some of the deep learning tricks, which was used in the Deep Q Network (DQN) see \Cref{sec:DQN}. To explain more about this algorithm a car simulation environment called "TORCS" is used see \Cref{sec:TORCS} for more information about the TORCS environment. \cite{DDPG_Torcs} 
 
 \subsection{Algorithm}
 Even with the DDPG using some of the tricks from the DQN algorithm, it is not straight forward to apply the Q-learning to continuous action space. It is because in continuous action spaces finding a greedy policy requires an optimization of \textit{$a_t$} at every time step - this optimization is too slow to be practical with large, unconstrained function approximators and non trivial action spaces. Here is instead used an actor-critic approach based on the DPG (deterministic policy gradient) algorithm \cite{DBLP:conf/icml/SilverLHDWR14}
