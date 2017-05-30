@@ -25,6 +25,8 @@ The result of this reward function can be seen on the graph below.
 
 Here it is seen that this reward didn't have the wanted effect, where the reward conjugate at the maximum. By looking at the simulator, it looks like the car is not finding the center of the track, it will then hit an edge an the episode is terminated. Therefore, the neural network stuck in a poor local minimum.  
 
+\textbf{the driving behavior is different}
+
 \subsection*{Second reward function}
 After using the first reward function it was concluded that this reward function didn't perform as expected. Because the reward function is important for learning, another reward function is tried. This reward function is taken from the blog \cite{DDPG_Torcs}. Here it uses the same idea, that the reward should be bigger if the car drives fast in the center of the track, and less reward when it is far away from the center. The reward function looks like this:
 
