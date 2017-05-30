@@ -39,3 +39,22 @@ The last track is similar to the two other tracks on \Cref{fig:track_simple_1} a
 \end{figure}
 
 
+\subsection*{Training}
+In this project, it is tested if the tracks has an influence on the training. This is done to see if there is some of the used track which is better to train on than the others.
+
+To compare this training the reward graph is used, the agent has trained on the three different tracks (\Cref{fig:track_simple_1}, \Cref{fig:track_simple_2} and \Cref{fig:track_longstr}). Here it would be better if the reward is growing faster on one of the tracks than the others, and even more important converge to the optimal reward faster. The reward graph can be seen on \textbf{ref to FIGURE REWARD GRAPH}.
+
+\textbf{FIGURE REWARD GRAPH}
+
+Here it is seen that the different track doesn't have any influence on when the reward starts to grow, they all start around 300 episodes. For the first two tracks which is similar, just mirrored, they have the same graphs. It is as expected, because they have the same length, reward function and acceleration, the training time and reward should then be the same. 
+
+The difference is the reward on the third track, which can be seen to converge to a bigger reward than getting on the two other tracks. This is because of the length of the track. It can get a bigger reward, when the track is longer. This is because the length of every episode is longer. The length of the episodes on the different tracks can be seen on {ref to FIGURE Length GRAPH}      
+
+\textbf{FIGURE Length GRAPH}
+
+Because the track is 3-4 times bigger the reward is also 3-4 times bigger \textbf{formulas of the reward and performance}
+
+After these result the track wich have been used in all the other trainings is the first track seen on \Cref{fig:track_simple_1}. To test if the agent has learned how to drive the second track is used seen on \Cref{fig:track_simple_2}. If the agent is able to complete a lap on both of these tracks it is concluded the agent has learned how to drive.   
+
+
+
