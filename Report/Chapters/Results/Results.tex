@@ -1,9 +1,9 @@
 \chapter{Results}
 \label{cha:Result}
-The project code is provided in the public github repository at the following link: https://github.com/popovicidaniela/Master-Thesis
-The A3C-Torcs can be run with and tested with the generated tensorboard graphs.
+The project code is provided in the public github repository at the following link: https://github.com/popovicidaniela/Master-Thesis.
+The A3C-Torcs can be run and tested with the generated tensorboard graphs.
 
-For monitoring and understanding better the training process, some performance and loss measures were taken into account in generating graphs in tensorboard. 
+For monitoring and understanding better the training process, some performance and loss measures were taken into account in generating graphs in tensorboard. The measures are added to a tf.Summary(), which then is added to a tf.summary.FileWriter() in order to make the data accessible in the tensorboard.
 
 The relevant performance measures are the length of the episode, accumulated reward, and the value function result. These values should be growing. The length of the episode grows until the agent has been trained to drive the whole lap. The more the car stays in the game and the better it drives, the more reward it gets and the better value function results. If the car crashes then the length of the episode is short, and because it is learning, the graph should show an increasing curve as the training advances. 
 
@@ -11,20 +11,26 @@ The loss measures are the ones that participate in the composition of the loss f
 
 The following figure presents the results of training an agent using A3C: 4 workers in parallel, the Adam optimizer with the learning rate of $10^{-4}$.
 \begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{Figures/Reward}
+	\caption{Reward}
+	\label{fig:Reward}
+\end{figure}
+\begin{figure}[H]
 	\minipage{0.5\textwidth}
 	\includegraphics[width=\linewidth]{Figures/Length}
 	\caption{Length}\label{fig:Length}
 	\endminipage\hfill
 	\minipage{0.5\textwidth}
-	\includegraphics[width=\linewidth]{Figures/Reward}
-	\caption{Reward}\label{fig:Reward}
+	\includegraphics[width=\textwidth]{Figures/Value}
+	\caption{Value}
+	\label{fig:Value}
 	\endminipage
 \end{figure}
 \begin{figure}[H]
 	\minipage{0.5\textwidth}
-	\includegraphics[width=\textwidth]{Figures/Value}
-	\caption{Value}
-	\label{fig:Value}
+	\includegraphics[width=\linewidth]{Figures/ValueLoss}
+	\caption{Value Loss}\label{fig:ValueLoss}
 	\endminipage\hfill
 	\minipage{0.5\textwidth}
 	\includegraphics[width=\textwidth]{Figures/PolicyLoss}
@@ -42,7 +48,6 @@ The following figure presents the results of training an agent using A3C: 4 work
 	\caption{Loss}\label{fig:Loss}
 	\endminipage
 \end{figure}
-
 As we can see from the figures the training has finished when the agent learned to drive the whole lap and the monotonicity of the plotted curves are as expected (as described above). After $5-6$ hours ($300$ steps) of training the vales started to converge. The trained agent was played on different tracks to test that it learned to drive, but more about this in the section about the different tracks.
 
 The chapter continues with presenting the different scenarios that offer insights in performance and environment manipulations. More precisely, the performance of two different optimizers will be compared, the scenarios with different number of workers will be presented, and different action spaces. The environment specific experiments list some manipulations with the reward function, acceleration and playing the trained agent on other tracks, too.
