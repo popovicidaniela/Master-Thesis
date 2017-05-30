@@ -1,10 +1,10 @@
 \section{Reward}
 something about the reward in general with ref to theory chapter
 
-\subsection{First reward function}
+\subsection*{First reward function}
 The first reward function, that is used in this project is the reward function from the paper \cite{DBLP:journals/corr/LillicrapHPHETS15}: \\
 \textit{"For the Torcs environment we used a reward function which provides a positive reward each step for the velocity of the car projected along the direction and a penalty of -1 for collisions. Episodes were terminated if progress was not made along the track after 500 frames.}\\
-To understand this a figure to illustrate this reward can be seen on \Cref{fig:Reward_paper}.
+To understand this a figure to illustrate the reward can be seen on \Cref{fig:Reward_paper}.
 
 \begin{figure}[H]
 	\centering
@@ -23,9 +23,9 @@ The reward is added to the total reward after every step. The total reward will 
 
 The result of this reward function can be seen on the graph below. 
 
-Here it is seen that this reward didn't have the wanted effect, where the reward conjugate at the maximum. By looking at the simulator, it looks like the car is trying to accelerate too fast, here it will hit an edge an the episode is then terminated. Therefore, the neural network stuck in a very poor local minimum  
+Here it is seen that this reward didn't have the wanted effect, where the reward conjugate at the maximum. By looking at the simulator, it looks like the car is not finding the center of the track, it will then hit an edge an the episode is terminated. Therefore, the neural network stuck in a poor local minimum.  
 
-\subsection{Second reward function}
+\subsection*{Second reward function}
 After using the first reward function it was concluded that this reward function didn't perform as expected. Because the reward function is important for learning, another reward function is tried. This reward function is taken from the blog \cite{DDPG_Torcs}. Here it uses the same idea, that the reward should be bigger if the car drives fast in the center of the track, and less reward when it is far away from the center. The reward function looks like this:
 
 \begin{equation}
