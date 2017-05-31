@@ -27,7 +27,7 @@ According to the paper \cite{DBLP:journals/corr/MnihBMGLHSK16}, for the asynchro
 
 Both RMSProp and Adam optimizers are available in the tensorflow library, and, therefore, were easily tried out and analyzed for the current project, A3C TORCS. A comparison of the two optimizers will be elaborated next, based on the tensorboard graphs generated while training the ANN.
 
-The Figure \ref{fig:OptimizersReward} illustrates the difference in performance between RMSProp and Adam optimizers at the same learning rate of $10^{-5}$, and it also shows the performance of the best learning rate of $10^{-4}$. The x-axis represents the steps, and the y-axis represents the value of the accumulated reward.
+The Figure \ref{fig:OptimizersReward} illustrates the difference in performance between RMSProp and Adam optimizers at the same learning rate of $10^{-5}$, and it also shows the performance of the best learning rate of $10^{-4}$. The x-axis represents the time-steps, and the y-axis represents the value of the accumulated reward.
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=\textwidth]{Figures/OptimizersReward}
