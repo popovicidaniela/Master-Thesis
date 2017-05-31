@@ -21,11 +21,8 @@ The idea this reward function uses it it gets an reward for how fast the car dri
 
 The reward is added to the total reward after every step. The total reward will then be the reward when an episode is finish. An episode is ended when the car is out of track, the car is driving backwards or the car has finished a track. 
 
-The result of this reward function can be seen on the graph below. 
-
 Here it is seen that this reward didn't have the wanted effect, where the reward conjugate at the maximum. By looking at the simulator, it looks like the car is not finding the center of the track, it will then hit an edge an the episode is terminated. Therefore, the neural network stuck in a poor local minimum.  
 
-\textbf{the driving behavior is different}
 
 \subsection*{Second reward function}
 After using the first reward function it was concluded that this reward function didn't perform as expected. Because the reward function is important for learning, another reward function is tried. This reward function is taken from the blog \cite{DDPG_Torcs}. Here it uses the same idea, that the reward should be bigger if the car drives fast in the center of the track, and less reward when it is far away from the center. The reward function looks like this:
@@ -37,4 +34,19 @@ The TrackPos gives percent the car is off center of track. Which is useful in th
 
 In this equation the first term want to maximum longitudinal velocity, second term try to minimize transverse velocity, and then it also penalize the AI if it constantly drives very off center of the track in the third term.
 
-Here we see the agent learns how to drive, and this is the reward function where the best results came in this project. It improves the learning time and the stability of the training. 
+Here we see the agent learns how to drive, and this is the reward function where the best results came in this project. It improves the learning time and the stability of the training.
+
+To compare the both rewards a graph is created, this graph can be seen on \Cref{fig:change_of_Reward_reward_graph}:
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1\textwidth]{Figures/Result/change_of_Reward_reward_graph.pdf}
+	\caption{Comparison of the two different reward function with the reward getting from the environment}
+	\label{fig:change_of_Reward_reward_graph}
+\end{figure}
+
+On the graph on \Cref{fig:change_of_Reward_reward_graph} it is seen that both reward function have the wanted effect, and the first reward function learns a bit faster than the second reward function around 250 time-steps and the second reward function learn around 320 time-steps. The negative side of the first reward function is it is not as stable as the second reward function, by looking at the graphs the second reward function is more stable than the first. 
+
+The stability of the learning can also be seen on the car in the TORCS environment. Here it looks like the first reward function drives close to the edge of the track, and learns how to follow the red and white stripes edges. In the second reward function the car learns to drive better near the center of the road, where the car is more following the white lines in the center of the road. 
+
+By seeing the second reward function works best, it is the reward function which has been used in the final algorithm for the agent.  
