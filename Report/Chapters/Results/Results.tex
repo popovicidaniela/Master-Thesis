@@ -10,11 +10,17 @@ The relevant performance measures are the length of the episode, accumulated rew
 The loss measures are the ones that participate in the composition of the loss function. These include policy, value, and entropy losses. These results should show decreasing curves as the loss is being minimized with each step and the estimations become more accurate. The entropy is representing the amount of exploration that the agent is making, the more it learns, the less it explores, therefore the entropy is decreasing, and th agent acts more and more based on his knowledge as it progresses.
 
 The following figure presents the results of training an agent using A3C: 4 workers in parallel, the Adam optimizer with the learning rate of $10^{-4}$.
+
 \begin{figure}[H]
-	\centering
+	\minipage{0.5\textwidth}
+	\includegraphics[width=\linewidth]{Figures/Result/reward_in_hours_best.pdf}
+	\caption{Reward in Hours on the x-axis}\label{fig:RewardHours}
+	\endminipage\hfill
+	\minipage{0.5\textwidth}
 	\includegraphics[width=\textwidth]{Figures/Reward}
 	\caption{Reward}
 	\label{fig:Reward}
+	\endminipage
 \end{figure}
 \begin{figure}[H]
 	\minipage{0.5\textwidth}
