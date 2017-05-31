@@ -1,4 +1,4 @@
-\section{Artificial Neural Networks}
+\section{Artificial Neural Networks}\label{ANNsection}
 Nonlinear methods for function approximation involve \textit{artificial neural networks} (ANNs). ANNs are the product of inspiration from the neural networks in the brains of animals and humans. Their properties and functionality have been successfully replicated in ANNs. An ANN is a layered structure of neurons which has minimum one input layer and one output layer. Each layer has a number of units (neurons) that are connected to the units in another layer. The connections are assigned weights that are used for the unit's \textit{activation}. In order to perform activation, a weighted sum of it's inputs is computed at each unit and then passed to an activation function to produce output. There are different activation functions, though, and the choice depends on the type of problem.
 
 In dependence of the structure of the network, there are different types of ANNs. For example, a simple case of \textit{feedforward} ANN without any loops, with an input layer of 4 units, 2 hidden layers, and an output layer with 2 units is presented in the \Cref{fig:feedforward}:
@@ -16,7 +16,7 @@ In order to find the gradient, an ANN can use the back-propagation algorithm. In
 
 A special structure of the network's architecture, like that of the deep \textit{convolutional networks} (CNN) would make it possible to use the back-propagation algorithm in deep ANNs, too. CNN is a very important type of ANN that is especially used for finding spatially correlated patterns in images while sharing weights and excluding the need of full connectivity between units.
 
-\subsection{Convolutional Neural Networks (CNNs)}
+\subsection{Convolutional Neural Networks (CNNs)} \label{subsectionCNN}
 
 Convolutional Neural Networks are similar to normal Neural Networks. They are made up of neurons that have learn able weights and biases. Each neuron receives some inputs, perform a dot product and sometimes follows it with a non-linearity. The whole network expresses a single differentiable score function - from raw image pixels to class scores. CNN architectures make the assumption that the inputs is images, which make it possible to encode certain properties into the architecture. It makes the forward function more efficient to implement and reduce the amount of parameters in the network. \cite{CNN_course}      
 

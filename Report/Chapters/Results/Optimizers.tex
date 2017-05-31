@@ -1,4 +1,4 @@
-\section{Optimizers}
+\section{Optimizers}\label{Optimizers}
 It was mentioned at the end of the previous chapter that the recommended optimizers were RMSProp and Adam. RMSProp was used in the experimental set-ups of the Atari games in \cite{DBLP:journals/corr/MnihKSGAWR13} and TORCS in \cite{DBLP:journals/corr/MnihBMGLHSK16}. Also, RMSProp was mentioned in section \ref{RNN} as a solution for the vanishing and exploding gradients problems in RNNs. The Adam optimizer was more often found in the working examples online: in the DDPG for TORCS \cite{DDPG_Torcs}, and in the A3C for Doom \cite{A3CDoom}.
 
 RMSProp and Adam algorithms are extensions of the basic SGD (described in the section \ref{Approximate solution methods}). The problem of identifying a learning rate persists, as it is well known that a too low learning rate results in slow training, whereas a too big learning rate would cause a lot of noise in the objective function so that it would never converge. These SGD extensions try to solve the learning rate problem by adapting it for each of the parameters. 
