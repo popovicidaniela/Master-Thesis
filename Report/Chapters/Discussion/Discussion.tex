@@ -1,1 +1,21 @@
 \chapter{Discussion}\label{Discussion}
+The results listed in the previous chapter require some interpretation and discussion. Not all the obtained results look as expected and some aspects need some more thought.
+
+Even though the Adam optimizer is doing more work in it's computations, it has proven to be more efficient in the training than RMSProp. Moreover, the optimal learning rate to be set for the optimizers turned out to be $10^{-4}$, which has been observed to produce the fastest training. This knowledge and parameters were further used in the multi-threading experiments, to gain insight and visualize how much faster the training becomes with more parallel learning workers.
+
+These are all true for the case of the discrete actions, where learning to steer has given the expected results, and which is also true for training more actions, steering and acceleration. Learning more actions, or having one more element in the discrete actions set, hasn't affected the performance that was noticed in training only the steering.
+
+Unfortunately, the continuous actions space didn't provide the expected results. In fact, it never learned to steer, for reasons still uncertain to us. There are some suppositions that were made with respect to the experiment, though. First, the entropy and policy loss calculation differs in the continuous case, therefore the loss function calculation could generate some errors and slacken the learning process. In order to fix the loss function, multiple trials have been deployed, especially minimizing the amount of operations and consequently reducing the possibility of error. Second, it was thought that the activation functions for the newly introduced layers in the ANN were wrong. Some more research into the activation functions was conducted and those were also corrected correspondingly. Third, the layer's initialization parameters are very sensible and might affect the whole training, and therefore they were initialized so that they would never be zero. It is really difficult to find running examples, debug and troubleshoot ANNs. Especially, because the research in RL is relatively fresh and the ares is still in development. The case of continuous actions space didn't have running examples with mean and variance layers. Whereas, there were simplistic implementations without the principles of normal distributions in the DDPG \cite{DDPG_Torcs}, which would be definitely a suggestion to try.
+
+Dennis text here ...
+
+\section{Future work}
+RGB
+
+image size
+
+off policy A3C: supervised policy as in GO
+
+In the paper of Go \cite{Silver_2016}, before learning the reinforcement learning policy, an initial policy was learned from a human expert with supervised learning. This narrows down the search space and the training that continues starting with the learned supervised policy is much faster. The current A3C implementation is learning a soft policy and it is an on-policy algorithm. In the \nameref{Solution Methods} section of chapter 2, it was mentioned the off-policy methods, which result in a more complicated approach, but more stable in the long run. If the off-policy approach with the principle of 2 policies can be combined with the idea used in Go \cite{Silver_2016}, it could result in a better A3C algorithm.
+
+Not long ago, in March, 2017, some researchers at Cornell University published an impressive paper about evolution strategies as a scalable alternative to reinforcement learning \cite{EvolStrat}. The paper was also posted on the openai blog. They provided a very good comparison of their results with the Atari paper \cite{DBLP:journals/corr/MnihKSGAWR13} saying that using 720 cores they can "obtain comparable performance to A3C on Atari while cutting down the training time from 1 day to 1 hour" \cite{EvolStrat}. Evolution strategies is known as an optimization method and it is much easier to implement including for the parallel setting, it doesn't get affected by scattered rewards. If the resources are available, would be interesting to try the evolution strategies, too.
