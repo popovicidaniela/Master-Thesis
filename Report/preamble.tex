@@ -1,11 +1,12 @@
 
-\documentclass[a4paper,11pt,fleqn,oneside,openright]{memoir} 	% Openright open chapters on right page (openany both pages)
+\documentclass[a4paper,11pt,fleqn,twoside,openright]{memoir} 	% Openright open chapters on right page (openany both pages)
 
 % english setup
 \usepackage[english]{babel}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 
+\usepackage{lastpage}
 %paragraph setup
 %\setlength{\parindent}{0pt} % no indent
 
@@ -145,7 +146,7 @@
 \checkandfixthelayout[nearest]
 
 % Header/Footer
-\nouppercaseheads
+%\nouppercaseheads
 \makepagestyle{minStil}
 \makeevenhead{minStil}{\slshape\leftmark}{}{}
 \makeoddhead{minStil}{}{}{\slshape\rightmark}
@@ -154,17 +155,15 @@
 \makepsmarks{minStil}{
 	\createmark{chapter}{left}{nonumber}{}{}}
 
-\pagestyle{minStil}
-%\usepackage{fancyhdr}
-%\pagestyle{fancy}
-%\fancypagestyle{main}{
-%	\fancyhf{}
-%	\fancyhead[LE,RO]{\slshape \rightmark}
-%	\fancyhead[LO,RE]{\slshape \leftmark}
-%	\fancyfoot[C]{\thepage}
-%	\renewcommand*{\headrulewidth}{0.4pt}
-%	\renewcommand*{\footrulewidth}{0pt}
-%}
+%\pagestyle{minStil}
+\usepackage{fancyhdr}
+%setup Headers and foot
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE,RO]{}
+\fancyhead[RE,LO]{\leftmark}
+\fancyfoot[CE,CO]{}
+\fancyfoot[LE,RO]{\thepage}
 
 % Indholdsfortegnegelse
 \setsecnumdepth{subsection}

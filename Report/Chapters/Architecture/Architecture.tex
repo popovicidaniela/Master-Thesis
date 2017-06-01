@@ -1,21 +1,23 @@
 \chapter{Methods}
 \label{chap:projectdef}
+This chapter will give a explanation of the methods implemented in this project. The methods used is state of the art in the area of reinforcement learning, they are decided from their impact on the area. One of the companies which is in front of developing new reinforcement learning methods is DeepMind. All the methods in this project is a method DeepMind published in the recent years. A figure to show an overview of the methods used in this project can be seen on \Cref{fig:Methods_deepmind}    
 
-
-
-\begin{wrapfigure}{R}{0.3\textwidth}
+\begin{figure}[H]
 	\centering
-	\includegraphics[width=0.6\textwidth]{Figures/Architecture/Project_framework_diagram}
-	\caption{The framework for the system used in this project}
-	\label{fig:Project_framework}
-\end{wrapfigure}
-This project is about learning a car or robot to control and navigate it self. This should be done so the robot don't hit walls or obstacles. to solve this problem, a framework is created, the framework can be seen on \Cref{fig:Project_framework}.
+	\includegraphics[width=1.25\textwidth]{Figures/Architecture/Methods_deepmind.pdf}
+	\caption{Time line of methods published by DeepMind. Methods implemented and described in this chapter is in a red box.  }
+	\label{fig:Methods_deepmind}
+\end{figure}
 
-The agent takes information from the environment, in this project the information used as input to the agent is an image. The agent uses the pixels from the image, to process spatial dependencies. The spatial dependencies is found by using of convolutional neural networks (CNN). The output from the CNN is the image features. The image features is used to process the temporal dependencies. To find the temporal dependencies a Recurrent Neural Network (RNN) is used. The RNN used is a special RNN called Long Short Term Memory network (LSTM). When both the spatial and temporal dependencies are found, the state the environment is found. This state is used to build the value function and a policy, which is describe a the Q-network. After the value function and the policy is found, the best suited action to the environment can be determined.
+All the methods shown on \Cref{fig:Methods_deepmind} is method found on DeepMind's website \cite{Publications_Deepmind}. The first method used and explained is the DQN (Deep Q-Network) from the paper \cite{DBLP:journals/corr/MnihKSGAWR13}. A short description of this method is also found at \Cref{Previous_Research}, and had a big impact on reinforcement learning.    
 
+The next method this project has worked with is the DDPG (Deep Deterministic Policy Gradient) this method is the first method used for continuous control. The method is from the paper \cite{DBLP:journals/corr/LillicrapHPHETS15}.
 
-The framework is created with inspiration from the papers  \cite{DBLP:journals/corr/MnihBMGLHSK16} and \cite{Sallab:2017:2470-1173:70}
-\newline
+By looking at the time-line the next two algorithm by DeepMind is not implemented and explained. The DDQN (Double Deep Q-Network) is a more advance version of the DQN and can be found in the paper \cite{DBLP:journals/corr/HasseltGS15}. The other method is the one DeepMind used to beat Lee Sedol in the game go, a short description can be found in \Cref{Previous_Research}. A explanation of the Method DeepMind used in the game of go can be found in the paper \cite{Silver_2016}.
+
+The last method implemented and described in this project is the A3C (Asynchronous Advantage Actor Critic) method, this is a method which uses different agent to train in the environment. A3C is the method which has been used mostly in this project, because it is the best and newest method. The method was published by DeepMind in this paper \cite{DBLP:journals/corr/MnihBMGLHSK16}. 
+
+All the method is implemented and tested in this project to see the differences and see how they worked. The DDPG and A3C is implemented in the TORCS environment, which is also explained in this chapter. 
 
 
 

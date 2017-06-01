@@ -1,7 +1,7 @@
 \section{Tracks}\label{Tracks}
 In the TORCS environment is it possible to change the tracks the car is racing in. This is done, to see how it will effect the training. The different tracks is also used for testing. It is possible to test if the car has learned how to drive, by training the car on one track, and then testing it on another track. The car should then be able to drive on both track.  
 
-The setup to test this is the best setup as described in the introduction to this \Cref{cha:Result}. The same setup is then used in all the different track the car has been training on, this is done to make sure that the results from the different track have the same parameters on all the tracks. 
+The setup to test this is the setup as described in the introduction to this \Cref{cha:Result}. The same setup is then used in all the different track the car has been training on, this is done to make sure that the results from the different track have the same parameters on all the tracks. 
 
 In the environment TORCS there are many different tracks. To get the agent to learn how to drive, a simple track was decided. This was done due to more complicated tracks, had more obstacles like bridges, tress and mountains. A problem with these obstacles is if the agent has to turn left for the first time and it sees many tress there. Then the agent could end up learning it has to turn left every time it sees a tree. then it will take longer for the agent to learn how to drive if there is many obstacles it has to take into account. 
 
@@ -40,7 +40,7 @@ The last track is similar to the two other tracks on \Cref{fig:track_simple_1} a
 
 
 \subsection*{Training}
-In this project, it is tested if the tracks has an influence on the training. This is done to see if there is some of the used track which is better to train on than the others.
+In this project, it is tested if the tracks has an influence on the training. This is done to see if there is some of the used track which is better to train on than others.
 
 To compare this training the reward graph is used, the agent has trained on the three different tracks (\Cref{fig:track_simple_1}, \Cref{fig:track_simple_2} and \Cref{fig:track_longstr}). Here it would be better if the reward is growing faster on one of the tracks than the others, and even more important converge to the optimal reward faster. The reward graph can be seen on \Cref{fig:change_of_track_reward_graph}.
 
@@ -51,9 +51,9 @@ To compare this training the reward graph is used, the agent has trained on the 
 	\label{fig:change_of_track_reward_graph}
 \end{figure}
 
-Here it is seen that the different track doesn't have any influence on when the reward starts to grow, they all start around 300 episodes. For the first two tracks which is similar, just mirrored, they have the same graphs. It is as expected, because they have the same length, reward function and acceleration, the training time and reward should then be the same. 
+As seen on \Cref{fig:change_of_track_reward_graph} the different track have a small influence on when the reward starts learning. The track longstr learns around 270 time-steps, simple\_1 around 320 time-steps and simple\_2 around 370 time-steps. Here it is hard to say why it learns faster on the simple\_1 track than the simple\_2, because it is the same track just mirrored. It could be the decision taking on the simple\_1 track is better than the one on simple\_2, so another training would then maybe vary a bit. Here it also seems to learn the track longstr faster, this could be because it is simpler than the other tracks.  
 
-The difference is the reward on the third track, which can be seen to converge to a bigger reward than getting on the two other tracks. This is because of the length of the track. It can get a bigger reward, when the track is longer. This is because the length of every episode is longer. The length of the episodes on the different tracks can be seen on \Cref{fig:change_of_track_length_graph }     
+The difference is the reward on the third track, which can be seen to converge to a bigger reward 43, than the reward from the two other tracks 11. This is because of the length of the track. It can get a bigger reward, when the track is longer. The reward is given by every step and added together to a total reward, this means if there is more steps, then the total reward is bigger. Another way to look at it is the length of every time-step is longer. The length of the episodes on the different tracks can be seen on \Cref{fig:change_of_track_length_graph }     
 
 \begin{figure}[H]
 	\centering
@@ -62,9 +62,17 @@ The difference is the reward on the third track, which can be seen to converge t
 	\label{fig:change_of_track_length_graph}
 \end{figure}
 
-Because the track is 3-4 times bigger the reward is also 3-4 times bigger \textbf{formulas of the reward and performance}
+Because the track is 3-4 times longer the reward is also 3-4 times bigger:
+\begin{equation}
+\frac{\mathrm{Length \ of \ longstr}}{\mathrm{Length \ of \ simple\_1}} = \mathrm{Length \ difference}   \qquad \rightarrow \qquad \frac{3075.4}{714.16} = 4.31  
+\end{equation}
+\begin{equation}
+\frac{\mathrm{Reward \ of \ longstr}}{\mathrm{Reward \ of \ simple\_1}} = \mathrm{Reward \ difference}   \qquad \rightarrow \qquad \frac{44}{11} = 4
+\end{equation}
+By looking of the result of the two equations, it looks like the bigger reward is just the difference of the length of the tracks. 
 
-After these result the track wich have been used in all the other trainings is the first track seen on \Cref{fig:track_simple_1}. To test if the agent has learned how to drive the second track is used seen on \Cref{fig:track_simple_2}. If the agent is able to complete a lap on both of these tracks it is concluded the agent has learned how to drive.   
+
+After these result the track which have been used in all the other trainings is the first track seen on \Cref{fig:track_simple_1}. To test if the agent has learned how to drive the second track is used seen on \Cref{fig:track_simple_2}. If the agent is able to complete a lap on both of these tracks it is concluded the agent has learned how to drive.   
 
 
 
