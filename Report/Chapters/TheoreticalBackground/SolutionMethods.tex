@@ -30,7 +30,13 @@ Dynamic programming uses the Bellman optimality equations \ref{BellmanOptimality
 Unlike the DP methods, the Monte Carlo and the temporal-difference solution methods don't require the model parameters to be known in advance, meaning that no previous knowledge about the environment is needed and that the agent learns exclusively from it's \textit{experience} (sampled states, actions, rewards). The MC method doesn't bootstrap, whereas TD does use bootstrapping, like the DP methods.
 
 \subsubsection{Monte Carlo}
-Monte Carlo differs from DP in the way it handles the prediction problem. It uses averages over the sampled returns from a specific state on episode-by-episode basis in order to learn over multiple observed returns the value function, whereas in DP the value function was computed from the knowledge of the MDP. The policy evaluation is performed by computing the value of the state-action pairs for the visited states over an episode. The policy improvement is performed by adjusting the policy closer to the action with the maximal value for a specific state.
+Monte Carlo differs from DP in the way it handles the prediction problem. It uses averages over the sampled returns from a specific state on episode-by-episode basis in order to learn the value function over multiple observed returns, whereas in DP the value function was computed from the knowledge of the MDP. The policy evaluation is performed by computing the value of the state-action pairs for the visited states over an episode. The return that is only know after an episode is used as a target for the value estimate of that state. The update formula for the value $v_{\pi}$ of a state following policy $\pi$ in a simple every-visit Monte Carlo method is:
+\begin{equation}\label{PolicyEvaluationMC}
+V(S_{t})\leftarrow V(S_{t})+\alpha \left [ G_{t}-V(S_{t}) \right ],
+\end{equation}
+where $\alpha$ is the step-size constant, $G_{t}$ is the actual return or also \textit{target}. The content between the square brackets is also called MC error.
+
+The policy improvement is performed by adjusting the policy closer to the action with the maximal value for a specific state.
 
 Because MC doesn't make all the possible actions, it is required to employ some kind of guarantee for exploration. This can be achieved by assigning nonzero probabilities for all the actions in order to make sure they are going to be picked eventually. This is called \textit{exploring starts}. A better approach are the \textit{on-policy} and \textit{off-policy} methods. 
 
@@ -43,13 +49,31 @@ Temporal Difference differs from DP also in the way it handles the prediction pr
 \begin{equation}\label{PolicyEvaluationTD0}
 V(S_{t})\leftarrow V(S_{t})+\alpha \left [ R_{t+1}+\gamma V(S_{t+1})-V(S_{t}) \right ]
 \end{equation}
-If we compare the MC target with the TD target, the MC target has $G_{t}$ instead of the immediate reward and the value estimate of the next state. The square brackets represents the TD error, or the MC error in the MC update function. An important observation is that the sum of the time steps TD errors gives an episode of MC error.
 
-For solving the control problem with TD(0) and on-policy methods, action-value functions are used instead of the value function that we've just seen. A "transition from one action-state pair to another" \cite{Sutton} yields a quintuple of the form $(S_{t}, A_{t}, R_{t+1}, S_{t+1}, A_{t+1})$, \textit{Sarsa}, which is the name of the algorithm. Therefore, for evaluating the policy, an estimation of the $q_{\pi}$ is required and for improving the policy, $\pi$ is greedily adjusted closer to it's $q_{\pi}$.
+If we compare the MC target with the TD target, the MC target has $G_{t}$ instead of the immediate reward $R_{t+1}$ and the value estimate of the next state $V(S_{t+1}$. The square brackets represents the TD error, or the MC error in the MC update function. An important observation is that the sum of the time steps TD errors gives an episode of MC error, because the TD(0) is a step-by-step algorithm, whereas MC is an episode-by-episode algorithm. The proof can be found in \cite{Sutton}.
 
-An notable off-policy TD(0) algorithm is \textit{Q-learning}. It is an off-policy method because it learns the optimal action-value function $q_{\pi*}$ independent of the policy. The action is picked greedily according to the estimated $Q$ but the $Q$ is updated based on the action that produces maximal value. 
+For solving the control problem with TD(0) and on-policy methods, action-value functions are used instead of the value function that we've just seen. A "transition from one action-state pair to another" \cite{Sutton} yields a quintuple of the form $(S_{t}, A_{t}, R_{t+1}, S_{t+1}, A_{t+1})$, \textit{Sarsa}, which is the name of the algorithm. Therefore, for evaluating the policy, an estimation of the $q_{\pi}$ is required and for improving the policy, $\pi$ is greedily adjusted closer to it's $q_{\pi}$. The Sarsa update formula for Q is the following:
+\begin{equation}\label{Sarsa}
+Q(S_{t}, A_{t})\leftarrow Q(S_{t}, A_{t})+\alpha \left [ R_{t+1}+\gamma Q(S_{t+1}, A_{t+1})-Q(S_{t}, A_{t}) \right ]
+\end{equation}
 
-A slight change into the update function of $Q$ would lead us to the \textit{Expected Sarsa} algorithm. The change is that instead of maximizing over the next action-value pairs, the expected return is taken, which considers the probabilities of making those actions according to the current policy. Expected Sarsa is a better algorithm in comparison with Sarsa and Q-learning.
+An notable off-policy TD(0) algorithm is \textit{Q-learning}. It is an off-policy method because it learns the optimal action-value function $q_{\pi*}$ independent of the policy. The action is picked greedily according to the estimated $Q$, but the $Q$ is updated based on the action that produces maximal value. The update formula for the Q-learning is the following:
+\begin{equation}\label{Qlearning}
+Q(S_{t}, A_{t})\leftarrow Q(S_{t}, A_{t})+\alpha \left [ R_{t+1}+\gamma \underset{a}{\textup{max}} Q(S_{t+1}, a)-Q(S_{t}, A_{t}) \right ]
+\end{equation}
+
+A slight change into the update function of $Q$ would lead us to the \textit{Expected Sarsa} algorithm. The change is that instead of maximizing over the next action-value pairs, the expected return is taken, which considers the probabilities of making those actions according to the current policy. Expected Sarsa is a better algorithm in comparison with Sarsa and Q-learning. The update formula for Expected Sarsa is the following:
+\begin{equation}\label{ESarsa}
+Q(S_{t}, A_{t})\leftarrow Q(S_{t}, A_{t})+\alpha \left [ R_{t+1}+ \gamma \sum_{a}\pi(a|S_{t+1}) Q(S_{t+1}, a)-Q(S_{t}, A_{t}) \right ]
+\end{equation}
+
+The Figure \ref{fig:BackupDiagrams} provides a summary for the tabular solution methods. It illustrates the back up diagrams for the different algorithms recently explored. The white circle represents a state, and the black circle - an action.
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\textwidth]{Figures/BackupDiagrams}
+	\caption{The backup diagrams of MC, TD(0), Sarsa, Q-learning, and Expected Sarsa}
+	\label{fig:BackupDiagrams}
+\end{figure}
 
 The MC and TD methods are extended into more complicated and powerful forms to achieve better performance, but the essence of these methods perpetuates in all the other algorithms. An idea about combining these two methods would be to unify them under \textit{n-step} algorithms instead of the extreme one time step in TD(0) and a whole episode in MC, or perform additions of other features like eligibility traces and model learning.
 	
