@@ -1,9 +1,9 @@
 \thispagestyle{empty}
+\begin{tikzpicture}[remember picture,overlay]
+\node[anchor=north east,inner sep=40pt] at (current page.north east)
+{\includegraphics[scale=0.08]{Figures/Aarhus_University_logo.png}};
+\end{tikzpicture}
 
-\begin{figure}[H]
-	\raggedleft
-	\includegraphics[width=0.2\textwidth]{Figures/Aarhus_University_logo.png}
-\end{figure}
 
 \begin{center}
 	\textsl{\LARGE Master's Thesis } \\ \vspace{0cm}
@@ -16,6 +16,7 @@
 		\textbf{Authors:} \hfill                 \textbf{Supervisor:}   \\
 		\textit{Daniela Popovici} \hfill        \textit{Henrik Karstoft}        \\
 		\textsl{201503243}\\
+		
 		\textit{Dennis Larsen}\\
 		\textsl{11671}
 	\end{flushleft}
@@ -26,13 +27,19 @@
 	2017
 \end{center}
 
+
+%insert blank page after frontpage
 \newpage
+\mbox{}
+\thispagestyle{empty}
+\newpage
+
 
 \phantomsection
 \pdfbookmark[0]{Frontpage}{frontpage}
 %\thispagestyle{empty}
 
-
+\thispagestyle{empty}
 \begin{minipage}[t]{0.48\textwidth}
 	\vspace*{14pt}			%\vspace*{-9pt}
 	\vspace{1.2cm}
@@ -82,6 +89,9 @@
 	\hfill
 	\vfill
 \end{minipage}
+
+\newpage
+\thispagestyle{empty}
 
 \begin{table}[H]
 	\caption{Contributions}
