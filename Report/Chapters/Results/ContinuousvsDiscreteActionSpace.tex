@@ -1,4 +1,4 @@
-\section{Continuous and Discrete Actions Spaces}\label{ContinuousDiscreteActionsSpaces}
+\section{Continuous vs. Discrete}\label{ContinuousDiscreteActionsSpaces}
 The difference between discrete and continuous actions spaces has been pointed out in the paragraphs about the policy gradients methods of the \ref{Solution Methods} section, where the discrete policy operation is described and where the components of the continuous policy are explained and, also in the \ref{ANNstructure} section, where the ANN structure in Figure \ref{A3CTorcs} illustrates the contrast in the policy formation of both actions spaces.
 
 No matter the problem, the actions are declared depending on the requirements of the environment that it is being worked with. In TORCS, the action of steering, for example, is always a number between -1 and +1.
@@ -6,20 +6,17 @@ No matter the problem, the actions are declared depending on the requirements of
 The discrete policy estimates the probabilities of taking each possible action in a clearly identified state. Therefore, a set of pre-defined actions should be declared. For instance, a choice for representing the steering action is to divide it into three parts, one action for steering in the left direction with the value +1, another action for not making any changes with the value 0, and an action for steering in the right direction with the value -1. This results in 3 actions, just to represent the steering. When the discrete policy layer assigns probabilities for each of these actions, the action with the highest probability is then deployed in the environment.
 
 The results of training for a single action - steering, are present at the beginning of this chapter in the figures \ref{fig:RewardHours}, \ref{fig:Reward}, \ref{fig:Length}, \ref{fig:Value}, \ref{fig:ValueLoss}, \ref{fig:PolicyLoss}, \ref{fig:EntropyLoss}, and \ref{fig:Loss}. More actions have also been tried. The acceleration action is handled by the environment when the Throttle option is set to False. When we want to send the acceleration as a discrete action instead, the environment should not use the Throttle anymore, but just receive our action. The acceleration range is [0, 1], and the discrete acceleration used is 0.2. The comparison between training only steering (1 action) and training steering and acceleration (2 actions) are provided in the following figure:
-
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.8\textwidth]{Figures/2Actions}
 	\caption{Reward of training Steering (1 actions) vs. Steering + Acceleration (2 actions)}
 	\label{fig:2Actions}
 \end{figure}
-
 It is noticeable in the Figure \ref{fig:2Actions} that the training performance of 1 action was not affected by adding an extra action.
 
 The continuous actions space, on the other hand, doesn't need a representation of an action in such a way. It instead uses the mean estimate and the variance estimated to construct a normal distribution. Then the normal distribution is sampled and the result is clipped for the corresponding range, which is [-1, 1] for steering. So, if there is a single action taken into account, then the layers for estimating the mean and variance are of size 1.
 
 These problems are especially sensitive to the way the layers are initialized and the values of the hyper-parameters. Consequently, different values and methods of initialization were tried for the continuous policy layers, but none of them seemed to give good results. Another possibility of the error source is the loss function calculation. Some implementations used the built in method call for the entropy calculation of a normal distribution \cite{A3CImplementation}, while others - hard-coded the method for calculating the cost on the differential entropy of the normal distribution defined by the output of the actor network \cite{DBLP:journals/corr/MnihBMGLHSK16}. It was checked with other implementations like the one in \cite{A3CLoss}, but it didn't solve the problem. The results of training the continuous actions space with two different ways of calculating the loss function are presented in the following figures:
-
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.8\textwidth]{Figures/ContinuousLoss1}
