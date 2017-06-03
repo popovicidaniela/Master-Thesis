@@ -17,7 +17,7 @@ The input to the neural network is an $84 x 84 x 4$ image. The output from the n
 	\label{fig:playing_atari}
 \end{figure} 
 
-This network is tested on seven Atari games, and the approach in this paper gave state-of-the-art result in six of the seven games. Finally, it showed better performance than an expert human player in three out of the seven games.  This DQN method is explained more in details in \Cref{sec:DQN}.  
+This network is tested on seven Atari games, and the approach in this paper gave state-of-the-art result in six of the seven games. Finally, it showed better performance than an expert human player in three out of the seven games. This DQN method is explained more in details in \Cref{sec:DQN}.  
 
 \subsection{Mastering the Game of Go with Deep Neural Networks and Tree Search}\cite{Silver_2016}
 This paper introduces a new approach to compete in the classic game Go \cite{explain_go}, the paper was published in 2016. The game of Go is the most challenging classic game for artificial intelligence, due to the enormous search space and the difficulty of evaluating board positions and moves. 
@@ -29,22 +29,24 @@ The way they trained the Neural Network started with training a supervised learn
 By combining tree search with policy and value networks, \textit{AlphaGo} has reached a professional level in Go. In March 2016 \textit{AlphaGo} won 4-1 against the legendary Lee Sedol , the top Go player in the world over the past decade.  
 
 \subsection{Asynchronous Methods for Deep Reinforcement Learning}\label{AsyncMeths}\cite{DBLP:journals/corr/MnihBMGLHSK16}
-This is another paper from the team behind \cite{DBLP:journals/corr/MnihKSGAWR13}, and was published in 2016. This paper provide a very different paradigm for deep reinforcement learning. Instead of experience replay, it asynchronously execute multiple agents in parallel, on multiple instances of the environment. 
+This is another paper from the team behind \cite{DBLP:journals/corr/MnihKSGAWR13}, and was published in 2016. This paper provides a very different paradigm for deep reinforcement learning. Instead of experience replay, it asynchronously executes multiple agents in parallel, on multiple instances of the environment. 
 
-This simple idea enables much larger spectrum of on-policy reinforcement learning algorithm as well as off-policy reinforcement learning algorithm, to be applied robustly and effectively using deep neural networks.  It also offers practical benefits, this experiment is able to run on a single machine with a standard multi-core CPU, instead of specialized such as GPUs.
+This simple idea enables much larger spectrum of on-policy reinforcement learning algorithm as well as off-policy reinforcement learning algorithm, to be applied robustly and effectively using deep neural networks.  It also offers practical benefits, this experiment can run on a single machine with a standard multi-core CPU, instead of GPUs.
 
 The paper presents asynchronous versions of four standard reinforcement algorithms used on different platforms. The platform used is a simulator for Atari 2600, Torcs 3D car racing simulator, Mujoco and Labyrinth. The asynchronous advantage actor-critic (A3C) algorithm was the best performing agent on all the platforms.
 
-The asynchronous advantage actor-critic (A3C) beats state of the art result in 26 of 57 Atari games. This is a big improvement from previously reinforcement networks. When trained on the Atari domain using 16 CPU cores, the proposed asynchronous algorithm train faster than Deep Q-Network trained on an Nvidia K40 GPU, with A3C surpassing the state of the art in half the training time.   
+The asynchronous advantage actor-critic (A3C) beats state of the art result in 26 of 57 Atari games. This is a big improvement from previously reinforcement networks. When trained on the Atari domain using 16 CPU cores, the proposed asynchronous algorithm train faster than Deep Q-Network trained on an Nvidia K40 GPU, with A3C surpassing the state of the art in half the training time. This A3C method is explained more in details in \Cref{sec:A3C}.
+   
 
 \subsection{Deep Reinforcement Learning framework for Autonomous Driving} \cite{Sallab:2017:2470-1173:70}
-This paper is motivated by the papers \cite{DBLP:journals/corr/MnihKSGAWR13} and \cite{Silver_2016}. It propose a framework for autonomous driving using deep reinforcement learning, the paper was published in 2017. It is relevant because it is difficult to handle autonomous driving as a supervised learning problem due to interactions with the environment. It also integrates recent work on attention models, to focus on relevant information, thereby reducing the computational complexity.
+This paper is motivated by the papers \cite{DBLP:journals/corr/MnihKSGAWR13} and \cite{Silver_2016}. It proposes a framework for autonomous driving using deep reinforcement learning, the paper was published in 2017. It is relevant because it is difficult to handle autonomous driving as a supervised learning problem due to interactions with the environment. It also integrates recent work on attention models, to focus on relevant information, thereby reducing the computational complexity.
 
-They propose a framework for an end-end autonomous driving model that takes in raw sensor input and output the driving actions. The model is able to handle partially observable scenarios. 
+They propose a framework for an end-to-end autonomous driving model that takes in raw sensor input and output the driving actions. The model can handle partially observable scenarios.  
 
-The framework can be seen on \Cref{fig:Framework_article}. In the model the spatial features are extracted via a CNN, which learns the features from data. To Decode the true environment state a LSTM network is used, which are able to control which information to keep from previous state. The final part of the framework is the reinforcement planing part. The inputs are the states of the environment and their aggregations over time. The output of the framework is the driving actions. 
+The framework can be seen on \Cref{fig:Framework_article}. In the model, the spatial features are extracted via a CNN, which learns the features from data. To Decode the true environment state, a LSTM network is used, which can control which information to keep from previous state. The final part of the framework is the reinforcement planning part. The inputs are the states of the environment and their aggregations over time. The output of the framework is the driving actions.  
+ 
 
-The paper used The Open-source Racing Car Simulator (Torcs) with a lane keeping assist algorithm to test the framework. The result is a successful lane keeping behavior with speed limit.    
+The paper used The Open-source Racing Car Simulator (Torcs) with a lane keeping assist algorithm to test the framework. The result is a successful lane keeping behavior with speed limit.        
 
 \begin{figure}[H]
 	\centering
@@ -53,4 +55,4 @@ The paper used The Open-source Racing Car Simulator (Torcs) with a lane keeping 
 	\label{fig:Framework_article}
 \end{figure}
  
-This concludes the theoretical background chapter. This chapter presented the problem of reinforcement learning with it's mathematical model and the known basic solution methods. Also, a couple of state of the art articles were summarized here. The next chapter presents the approaches of solving a real world problem, the problem of driver-less cars more precisely, with some of the advanced RL methods.
+This concludes the theoretical background chapter. This chapter presented the problem of reinforcement learning with its mathematical model and the known basic solution methods. Also, a couple of state of the art articles were summarized here. The next chapter presents the approaches of solving a real-world problem, the problem of driver-less cars more precisely, with some of the advanced RL methods.
