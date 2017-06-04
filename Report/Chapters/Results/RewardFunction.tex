@@ -1,7 +1,7 @@
 \section{Reward}\label{sectionReward}
-The reward is important in reinforcement learning, because the agent must maximize the reward for learning how to act in the environment. Consider teaching a dog a new trick: you cannot tell it what to do, but you can reward/punish it if it does the right/wrong thing. It should figure out what it did to get the reward/punishment, which is known as the credit assignment problem \cite{reward_small}. We can use a similar method to train the agent how to drive a car. More about the reward can be read in \Cref{TheorBkgdRL}.  
-	
-In this project two reward function is compared, for learning the agent how to drive a car in the TORCS environment.  
+The reward is important in reinforcement learning because the agent must maximize the reward for learning how to act in the environment. Consider teaching a dog a new trick: you cannot tell it what to do, but you can reward/punish it if it does the right/wrong thing. It should figure out what it did to get the reward/punishment, which is known as the credit assignment problem \cite{reward_small}. We can use a similar method to train the agent how to drive a car. More about the reward can be read in \Cref{TheorBkgdRL}.  
+
+In this project, two reward function is compared, for learning the agent how to drive a car in the TORCS environment.  
 
 \subsection*{First reward function}
 The first reward function used in this project is the reward function from the paper \cite{DBLP:journals/corr/LillicrapHPHETS15}: \\
@@ -19,7 +19,7 @@ The reward function here is:
 \begin{equation}
 Reward = V_{car} \cdot cos(\theta) 
 \end{equation}
-The idea this reward function uses, is getting a reward for how fast the car drives, in the center of the road. The agent gets more reward, when the car is driving fast at the center of the road, and less reward when the car is driving fast away from the center of the road. 
+The idea this reward function uses is getting a reward for how fast the car drives, in the center of the road. The agent gets more reward when the car is driving fast at the center of the road, and less reward when the car is driving fast away from the center of the road. 
 
 \subsection*{Second reward function}
 After testing the first reward function, it was concluded, that this reward function didn't perform as expected. Because the reward function is important for learning, another reward function is tried. This reward function is taken from the blog \cite{DDPG_Torcs}. Here it uses the same idea, that the reward should be bigger if the car drives fast in the center of the road, and less reward when it is far away from the center. The reward function looks like this:
@@ -32,7 +32,7 @@ The TrackPos gives percent the car is away from the center of the road. Which is
 
 In \Cref{eq:reward_2} the first term ($V_{car} \cdot cos(\theta)$) want to maximum longitudinal velocity, second term ($V_{car} \cdot sin(\theta)$) try to minimize transverse velocity. It penalize the AI if it constantly drives away from the center of the road in the third term ($V_{car} \cdot \mid trackPos\mid$).
 
-Here it is see the agent learns how to drive, and this is the reward function where the best results came from. It has improving the stability of the training. 
+Here it sees the agent learns how to drive, and this is the reward function where the best results came from. It has to improve the stability of the training. 
 
 To test the two reward functions influence on the learning, all other parameters stays as described in the introduction to this \Cref{cha:Result}. Thereby it should be possible to only see the influence of the two different reward functions. 
 
@@ -45,10 +45,11 @@ To compare both reward functions a graph is created, this graph can be seen on \
 	\label{fig:change_of_Reward_reward_graph}
 \end{figure}
 
-The \Cref{fig:change_of_Reward_reward_graph} shows the mean total reward of 5 time-steps (episodes). The reward after every steps (state) are added together to get the total reward. The total reward is the reward when an episode is finished. An episode is finished, when the car is not on the road, the car is driving backwards or the car has finished a lap.   
+The \Cref{fig:change_of_Reward_reward_graph} shows the mean total reward of 5 time-steps (episodes). The reward after every step (state) is added together to get the total reward. The total reward is the reward when an episode is finished. An episode is finished, when the car is not on the road, the car is driving backward or the car has finished a lap.   
 
-On the graph in \Cref{fig:change_of_Reward_reward_graph} shows that both reward function have the wanted effect, and the first reward function learns a bit faster than the second reward function around 250 time-steps and the second reward function learn around 320 time-steps. The negative side of the first reward function, is it looks more unstable than the second reward function. This is seen by looking at the graphs settling value, which is not as constant on the first reward function, as on the second reward function. 
+On the graph in \Cref{fig:change_of_Reward_reward_graph} shows that both reward function have the wanted effect, and the first reward function learns a bit faster than the second reward function around 250 time-steps and the second reward function learn around 320 time-steps. The negative side of the first reward function is it looks more unstable than the second reward function. This is seen by looking at the graphs converge value, which is not as constant on the first reward function, as on the second reward function. 
 
-The stability issue of the learning can also be seen on the driving car in the TORCS environment. Here it looks like the first reward function drives close to the edge of the road, and learns how to follow the red and white stripes edges. In the second reward function the car learns to drive near the center of the road, where the car is more following the white lines in the center of the road. 
+The stability issue of the learning can also be seen on the driving car in the TORCS environment. Here it looks like the first reward function drives close to the edge of the road, and learns how to follow the red and white stripes edges. In the second reward function, the car learns to drive near the center of the road, where the car is more following the white lines in the center of the road. 
 
-The second reward function works best, it is then the reward function which has been used in the final algorithm for the agent.  
+The second reward function works best, it is then the reward function which has been used in the final algorithm for the agent.
+ 
