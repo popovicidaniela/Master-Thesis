@@ -1,7 +1,7 @@
 \section{Solution Methods of RL}\label{Solution Methods}
 The solution methods for the reinforcement learning problem can be divided into two groups, \textit{tabular} and \textit{approximate}. The tabular solution methods find exact, optimal solutions and are more suitable when the states and actions space is rather small, while the approximate solution methods provide approximate solutions and it is applicable to large spaces problems.
 
-The process of \textit{generalized policy iteration} (GPI) provides a good way of getting insight into the methods of RL. GPI employs a sequence of interleaved policy evaluations and policy improvements, where the given policy is evaluated, for example, by computing it's value function, and the policy is improved by using the value function. This process is proven to converge to an optimal policy and value function for the classical dynamic programming methods. GPI represents the way that almost all RL methods work. The \Cref{fig:GPI} illustrates the process better.
+The process of \textit{generalized policy iteration} (GPI) provides a good way of getting insight into the methods of RL. GPI employs a sequence of interleaved policy evaluations and policy improvements, where the given policy is evaluated, for example, by computing its value function, and the policy is improved by using the value function. This process is proven to converge to an optimal policy and value function for the classical dynamic programming methods. GPI represents the way that almost all RL methods work. The \Cref{fig:GPI} illustrates the process better.
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.9\textwidth]{Figures/GPI}
@@ -27,10 +27,10 @@ Dynamic programming uses the Bellman optimality equations \ref{BellmanOptimality
 \end{split}
 \end{equation}
 
-Unlike the DP methods, the Monte Carlo and the temporal-difference solution methods don't require the model parameters to be known in advance, meaning that no previous knowledge about the environment is needed and that the agent learns exclusively from it's \textit{experience} (sampled states, actions, rewards). The MC method doesn't bootstrap, whereas TD does use bootstrapping, like the DP methods.
+Unlike the DP methods, the Monte Carlo and the temporal-difference solution methods don't require the model parameters to be known in advance, meaning that no previous knowledge about the environment is needed and that the agent learns exclusively from its \textit{experience} (sampled states, actions, rewards). The MC method doesn't bootstrap, whereas TD does use bootstrapping, like the DP methods.
 
 \subsubsection{Monte Carlo}
-Monte Carlo differs from DP in the way it handles the prediction problem. It uses averages over the sampled returns from a specific state on episode-by-episode basis in order to learn the value function over multiple observed returns, whereas in DP the value function was computed from the knowledge of the MDP. The policy evaluation is performed by computing the value of the state-action pairs for the visited states over an episode. The return that is only know after an episode is used as a target for the value estimate of that state. The update formula for the value $v_{\pi}$ of a state following policy $\pi$ in a simple every-visit Monte Carlo method is:
+Monte Carlo differs from DP in the way it handles the prediction problem. It uses averages over the sampled returns from a specific state on an episode-by-episode basis in order to learn the value function over multiple observed returns, whereas in DP the value function was computed from the knowledge of the MDP. The policy evaluation is performed by computing the value of the state-action pairs for the visited states over an episode. The return that is only known after an episode is used as a target for the value estimate of that state. The update formula for the value $v_{\pi}$ of a state following policy $\pi$ in a simple every-visit Monte Carlo method is:
 \begin{equation}\label{PolicyEvaluationMC}
 V(S_{t})\leftarrow V(S_{t})+\alpha \left [ G_{t}-V(S_{t}) \right ],
 \end{equation}
@@ -40,9 +40,9 @@ The policy improvement is performed by adjusting the policy closer to the action
 
 Because MC doesn't make all the possible actions, it is required to employ some kind of guarantee for exploration. This can be achieved by assigning nonzero probabilities for all the actions in order to make sure they are going to be picked eventually. This is called \textit{exploring starts}. A better approach are the \textit{on-policy} and \textit{off-policy} methods. 
 
-On-policy methods have probabilities greater than zero for all their actions, meaning that they have \textit{soft} policies. The policies in on-policy methods become closer to an optimal deterministic policy in time. The exploring starts is an example of on-policy method. Another example would be an $\epsilon$-greedy policy where the best action is chosen with the probability $1-\epsilon$ and, sometimes, another random action is chosen with the probability $\epsilon$.
+On-policy methods have probabilities greater than zero for all their actions, meaning that they have \textit{soft} policies. The policies of on-policy methods become closer to an optimal deterministic policy in time. The exploring starts is an example of an on-policy method. Another example would be an $\epsilon$-greedy policy where the best action is chosen with the probability $1-\epsilon$ and, sometimes, another random action is chosen with the probability $\epsilon$.
 
-Off-policy methods use 2 policies: a \textit{target policy} $\pi$, which is a deterministic policy, like the one presented in the on-policy methods, and a \textit{behavior policy} $\mu$, which is stochastic in states and generates data by exploring. Both policies have non zero probabilities that ensures the coverage property. Off-policy methods can be implemented with \textit{importance sampling} technique. The importance sampling technique computes an importance sampling ratio based on the relative probabilities of the returns' trajectories from both policies and it is used for weighting the returns for learning the value function.
+Off-policy methods use 2 policies: a \textit{target policy} $\pi$, which is a deterministic policy, like the one presented in the on-policy methods, and a \textit{behavior policy} $\mu$, which is stochastic in states and generates data by exploring. Both policies have non-zero probabilities that ensure the coverage property. Off-policy methods can be implemented with \textit{importance sampling} technique. The importance sampling technique computes an importance sampling ratio based on the relative probabilities of the returns' trajectories from both policies and it is used for weighting the returns for learning the value function.
 
 \subsubsection{Temporal Difference}\label{Temporal Difference}
 Temporal Difference differs from DP also in the way it handles the prediction problem. TD makes an estimate of the value function after each time step by sampling expected values and using current value estimates. Therefore, TD is a combination of MC sampling and DP bootstrapping. The simplest TD method is also called \textit{TD(0)}. The update function for TD(0) \ref{PolicyEvaluationTD0} is the following:
@@ -50,7 +50,7 @@ Temporal Difference differs from DP also in the way it handles the prediction pr
 V(S_{t})\leftarrow V(S_{t})+\alpha \left [ R_{t+1}+\gamma V(S_{t+1})-V(S_{t}) \right ]
 \end{equation}
 
-If we compare the MC target with the TD target, the MC target has $G_{t}$ instead of the immediate reward $R_{t+1}$ and the value estimate of the next state $V(S_{t+1}$. The square brackets represents the TD error, or the MC error in the MC update function. An important observation is that the sum of the time steps TD errors gives an episode of MC error, because the TD(0) is a step-by-step algorithm, whereas MC is an episode-by-episode algorithm. The proof can be found in \cite{Sutton}.
+If we compare the MC target with the TD target, the MC target has $G_{t}$ instead of the immediate reward $R_{t+1}$ and the value estimate of the next state $V(S_{t+1}$. The square brackets represent the TD error or the MC error in the MC update function. An important observation is that the sum of the time steps TD errors gives an episode of MC error, because the TD(0) is a step-by-step algorithm, whereas MC is an episode-by-episode algorithm. The proof can be found in \cite{Sutton}.
 
 For solving the control problem with TD(0) and on-policy methods, action-value functions are used instead of the value function that we've just seen. A "transition from one action-state pair to another" \cite{Sutton} yields a quintuple of the form $(S_{t}, A_{t}, R_{t+1}, S_{t+1}, A_{t+1})$, \textit{Sarsa}, which is the name of the algorithm. Therefore, for evaluating the policy, an estimation of the $q_{\pi}$ is required and for improving the policy, $\pi$ is greedily adjusted closer to it's $q_{\pi}$. The Sarsa update formula for Q is the following:
 \begin{equation}\label{Sarsa}
@@ -67,7 +67,7 @@ A slight change into the update function of $Q$ would lead us to the \textit{Exp
 Q(S_{t}, A_{t})\leftarrow Q(S_{t}, A_{t})+\alpha \left [ R_{t+1}+ \gamma \sum_{a}\pi(a|S_{t+1}) Q(S_{t+1}, a)-Q(S_{t}, A_{t}) \right ]
 \end{equation}
 
-The Figure \ref{fig:BackupDiagrams} provides a summary for the tabular solution methods. It illustrates the back up diagrams for the different algorithms recently explored. The white circle represents a state, and the black circle - an action.
+The Figure \ref{fig:BackupDiagrams} provides a summary of the tabular solution methods. It illustrates the backup diagrams for the different algorithms recently explored. The white circle represents a state, and the black circle - an action.
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.7\textwidth]{Figures/BackupDiagrams}
@@ -75,7 +75,7 @@ The Figure \ref{fig:BackupDiagrams} provides a summary for the tabular solution 
 	\label{fig:BackupDiagrams}
 \end{figure}
 
-The MC and TD methods are extended into more complicated and powerful forms to achieve better performance, but the essence of these methods perpetuates in all the other algorithms. An idea about combining these two methods would be to unify them under \textit{n-step} algorithms instead of the extreme one time step in TD(0) and a whole episode in MC, or perform additions of other features like eligibility traces and model learning.
+The MC and TD methods are extended to more complicated and powerful forms to achieve better performance, but the essence of these methods perpetuates in all the other algorithms. An idea about combining these two methods would be to unify them under \textit{n-step} algorithms instead of the extreme one time step in TD(0) and a whole episode in MC or perform additions of other features like eligibility traces and model learning.
 	
 \subsection{Approximate Solution Methods}\label{Approximate solution methods}
 The approximate solution methods are an extension to the tabular solution methods for huge states spaces problems. In this type of problems, the goal is to find a good approximate solution under the condition of restricted computational resources. Because almost every visited state is seen for the first time, every state being so unique, the agent needs to be able to make sense of it and, therefore, usefully generalize the information it gets. This is possible thanks to function approximation. “Function approximation is an instance of supervised learning, the primary topic studied in machine learning, artificial neural networks, pattern recognition, and statistical curve fitting” \cite{Sutton}.
@@ -110,9 +110,9 @@ The policy gradient theorem provides a formula for computing the gradient of the
 \nabla\eta(\theta)=\sum_{a}d_{\pi}(s)\sum_{a}q_{\pi}(s,a)\nabla_{\theta}\pi(a|s,\theta)
 \end{equation}
 
-The methods that use both policy and value approximations are named \textit{actor-critic} methods, where the \textit{actor} estimates the policy weights vector for choosing an action and the \textit{critic} estimates the value weights for providing the information about the quality of a state the agent ends up in after making the action according to the policy. So, the actor is about the learned policy, and the critic - about the learned value function. 
+The methods that use both policy and value approximations are named \textit{actor-critic} methods, where the \textit{actor} estimates the policy weights vector for choosing an action and the \textit{critic} estimates the value weights for providing the information about the quality of a state the agent ends up in after making the action according to the policy. So, the actor is about the learned policy and the critic - about the learned value function. 
 
-There is an algorithm which is called \textit{reinforce} and it also uses both policy and value function approximation, but it doesn't bootstrap. The critic, on the other hand, is a bootstrapping critic, which updates it's states based on the value estimates of the next states. So, the initial reinforce algorithm has been changed for the actor-critic method: it's full return was replaced by one-step return. The one-step actor critic algorithm is presented below \cite{Sutton}:
+There is an algorithm which is called \textit{reinforce} and it also uses both policy and value function approximation, but it doesn't bootstrap. The critic, on the other hand, is a bootstrapping critic, which updates its states based on the value estimates of the next states. So, the initial reinforce algorithm has been changed for the actor-critic method: it's full return was replaced by one-step return. The one-step actor-critic algorithm is presented below \cite{Sutton}:
 \begin{algorithm}[H]
 	\caption{One-step Actor-Critic (episodic)}
 	\label{algo:AC}
