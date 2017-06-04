@@ -1,15 +1,15 @@
 \chapter{Results}
 \label{cha:Result}
-The project code is provided in the public github repository at the following link: https://github.com/popovicidaniela/Master-Thesis.
+The project code is provided in the public GitHub repository at the following link: https://github.com/popovicidaniela/Master-Thesis.
 The A3C-Torcs can be run and tested with the generated tensorboard graphs.
 
 For monitoring and understanding better the training process, some performance and loss measures were taken into account in generating graphs in tensorboard. The measures are added to a tf.Summary(), which then is added to a tf.summary.FileWriter() in order to make the data accessible in the tensorboard.
 
 The relevant performance measures are the length of the episode, accumulated reward, and the value function result. These values should be growing. The length of the episode grows until the agent has been trained to drive the whole lap. The more the car stays in the game and the better it drives, the more reward it gets and the better value function results. If the car crashes then the length of the episode is short, and because it is learning, the graph should show an increasing curve as the training advances. 
 
-The loss measures are the ones that participate in the composition of the loss function. These include policy, value, and entropy losses. These results should show decreasing curves as the loss is being minimized with each step and the estimations become more accurate. The entropy is representing the amount of exploration that the agent is making, the more it learns, the less it explores, therefore the entropy is decreasing, and th agent acts more and more based on his knowledge as it progresses.
+The loss measures are the ones that participate in the composition of the loss function. These include policy, value, and entropy losses. These results should show decreasing curves as the loss is being minimized with each step and the estimations become more accurate. The entropy is representing the amount of exploration that the agent is making, the more it learns, the less it explores, therefore the entropy is decreasing, and the agent acts more and more based on his knowledge as it progresses.
 
-The following figures present the results of training using A3C for 4 workers in parallel, the Adam optimizer with the learning rate of $10^{-4}$. Figure \ref{fig:RewardHours} shows the accumulated reward after hours of training, whereas y-axis represents the accumulated reward and x-axis - the hours of training. The values plotted on all graphs are the values accumulated over each 5 episodes, where an episode terminates when the car goes out of the track or when the car finishes a lap. In each episode there are a certain number of state (images or frames) and action pairs. Figure \ref{fig:Length} plots the mean accumulated length of an episode in terms of the number of states that the car have been into in the last 5 episodes. For this figure and the rest of them, the x-axis is expressed in time-steps, where a time-step is the mean accumulated values over 5 episodes.
+The following figures present the results of training using A3C for 4 workers in parallel, the Adam optimizer with the learning rate of $10^{-4}$. Figure \ref{fig:RewardHours} shows the accumulated reward after hours of training, whereas y-axis represents the accumulated reward and x-axis - the hours of training. The values plotted on all graphs are the values accumulated over each 5 episodes, where an episode terminates when the car goes out of the track or when the car finishes a lap. In each episode, there are a certain number of state (images or frames) and action pairs. Figure \ref{fig:Length} plots the mean accumulated length of an episode in terms of the number of states that the car has been into in the last 5 episodes. For this figure and the rest of them, the x-axis is expressed in time-steps, where a time-step is the mean accumulated values over 5 episodes.
 
 \begin{figure}[H]
 	\minipage{0.5\textwidth}
@@ -56,7 +56,7 @@ The following figures present the results of training using A3C for 4 workers in
 \end{figure}
 As we can see from the figures the training has finished when the agent learned to drive the whole lap and the monotonicity of the plotted curves are as expected (as described above). After $5-6$ hours ($300$ time-steps) of training the values started to converge. The trained agent was played on different tracks to test that it learned to drive, but more about this in the section about the different tracks.
 
-The chapter continues with presenting the different scenarios that offer insights in performance and environment manipulations. More precisely, the performance of two different optimizers will be compared, the scenarios with different number of workers will be presented, and different action spaces. The environment specific experiments list some manipulations with the reward function, acceleration and playing the trained agent on other tracks, too.
+The chapter continues with presenting the different scenarios that offer insights in performance and environment manipulations. More precisely, the performance of two different optimizers will be compared, the scenarios with a different number of workers will be presented, and different action spaces. The environment specific experiments list some manipulations with the reward function, acceleration and playing the trained agent on other tracks, too.
 
 %network
 \input{Chapters/Results/Optimizers}
