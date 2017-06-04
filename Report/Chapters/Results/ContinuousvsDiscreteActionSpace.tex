@@ -30,6 +30,6 @@ These problems are especially sensitive to the way the layers are initialized an
 	\label{fig:ContinuousLoss2}
 \end{figure}
 
-It is hard to debug or see what is actually happening in the ANN or whether the calculations are right at a specific time, and also these programs do not fire an error in such situations. Therefore these kind of problems are hard to fix. Further investigations are required to find the root problem of malfunctioning in the continuous case.
+It is hard to debug or see what is actually happening in the ANN or whether the calculations are right at a specific time, and also these programs do not fire an error in such situations. Therefore these kind of problems is hard to fix. Further investigations are required to find the root problem of malfunctioning in the continuous case.
 
 The DDPG project outlined in \ref{DDPG} section implemented a continuous actions space in a very simplistic way, and it didn't use the principles of estimated variance and mean for making a normal distribution, the way it was suggested in \cite{Sutton}. It, instead, used a single layer with the tanh activation function for generating an action with a value between [-1, 1]. This idea might work and would be good to try it for the A3C TORCS.
