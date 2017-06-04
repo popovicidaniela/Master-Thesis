@@ -1,16 +1,16 @@
 \section{Deep Deterministic Policy Gradient (DDPG)}\label{DDPG}
-As mentioned in \Cref{sec:DQN} the Deep Q Network solves problems with high-dimensional observation space. But the problem is it can only handle discrete and low-dimensional action space. Many task of interest, most notably physical control tasks, have continuous (real valued) and high dimensional action spaces. The problem with the Deep Q Network is it cannot be applied to continuous domains since it relies on finding the action that maximizes action-value function. In the continuous valued case requires an iterative optimization process at every step. \cite{DBLP:journals/corr/LillicrapHPHETS15}
+As mentioned in \Cref{sec:DQN} the Deep Q-Network solves problems with high-dimensional observation space. But the problem is it can only handle discrete and low-dimensional action space. Many task of interest, most notably physical control tasks, have continuous (real valued) and high-dimensional action spaces. The problem with the Deep Q-Network is it cannot be applied to continuous domains since it relies on finding the action that maximizes action-value function. In the continuous valued case requires an iterative optimization process at every step. \cite{DBLP:journals/corr/LillicrapHPHETS15}
 
-An obvious approach to adapting the Deep Q Network method to continuous domain is to simply discretize the action space. This have many limitation, most important the curse of dimensionality - the number of actions increases exponentially with the number of degrees of freedom. An example is the human arm is a 7 degrees of freedom system, with a assumption discretization $a_i \sim  \{-k,0,k\}$ for each joint leads to an action space with dimensionality: $3^7 = 2187$. This problem just become bigger with a finer discretion. Such a large action space makes it difficult to explore efficiently. Discretization of action spaces throws away information of the action domain.
+An obvious approach to adapting the Deep Q-Network method to continuous domain is to simply discretize the action space. This have many limitation, most important the curse of dimensionality - the number of actions increases exponentially with the number of degrees of freedom. An example is the human arm have 7 degrees of freedom, with an assumption discretization $a_i \sim  \{-k,0,k\}$ for each joint leads to an action space with dimensionality: $3^7 = 2187$. This problem just become bigger with a finer discretion. Such a large action space makes it difficult to explore efficiently. Discretization of action spaces throws away information of the action domain. 
 
 The Deep Deterministic Policy Gradient try to solve these problems. The Deep Deterministic Policy Gradient method is a model-free off-policy actor-critic algorithm using deep function approximators that can learn policies in high-dimensional, continuous action space. 
 
-The DDPG algorithm uses some of the some of the deep learning tricks, which was used in the Deep Q Network (DQN) see \Cref{sec:DQN}. To explain more about this algorithm a car simulation environment called "TORCS" is used see \Cref{sec:TORCS} for more information about the TORCS environment. \cite{DDPG_Torcs} 
+The DDPG algorithm uses some of the same deep learning tricks as the Deep Q-Network (DQN) see \Cref{sec:DQN}. To explain more about this algorithm a car simulation environment called TORCS (The Open Racing Car Simulator) is used see \Cref{sec:TORCS} for more information about the TORCS environment \cite{DDPG_Torcs}.
 
 \subsection{Algorithm}
-Even with the DDPG using some of the tricks from the DQN algorithm, it is not straight forward to apply the Q-learning to continuous action space. It is because in continuous action spaces finding a greedy policy requires an optimization of \textit{$a_t$} at every time step - this optimization is too slow to be practical with large, unconstrained function approximators and non trivial action spaces. Here is instead used an actor-critic approach based on the DPG (deterministic policy gradient) algorithm \cite{DBLP:conf/icml/SilverLHDWR14}
+Even with the DDPG using some of the tricks from the DQN algorithm, it is not straight forward to apply the Q-learning to continuous action space. It is because in the continuous action space finding a greedy policy requires an optimization of \textit{$a_t$} at every time step - this optimization is too slow to be practical with large, unconstrained function approximators and non-trivial action spaces. Here is instead used an actor-critic approach based on the DPG (deterministic policy gradient) algorithm \cite{DBLP:conf/icml/SilverLHDWR14} 
 
-The DPG algorithm use a parameterized actor function $\mu(s|\theta^\mu)$ which specifies the current policy by deterministically mapping states to a specific action. The critic $Q(s,a)$ is learned by using the Bellman equation as in Q-learning. The actor is updated by applying the chain rule to the expected return from the start distribution J with respect to the actor parameters:
+The DPG algorithm use a parameterized actor function $\mu(s|\theta^\mu)$ which specifies the current policy by deterministically mapping states to a specific action. The critic $Q(s,a)$ is learned by using the Bellman equation as in Q-learning. The actor is updated by applying the chain rule to the expected return from the start distribution J with respect to the actor parameters: 
 \begin{equation}
 \triangledown_{\theta^\mu} J \approx \mathbb{E}_{s_t \sim \rho^\beta} [\triangledown_{\theta^\mu}Q(s,a|\theta^Q)|_{s=s_t , a=\mu(s_t|\theta^\mu)}]  
 \newline
@@ -21,28 +21,28 @@ The DPG algorithm use a parameterized actor function $\mu(s|\theta^\mu)$ which s
 
 This was proved that it is the policy gradient - the gradient of the policy performance. 
 
-Introducing non-linear function approximators means that convergence is no longer guaranteed. The approximators is essential to learn and generalize on large state spaces. The DDPG contribution is to provide modification to DPG inspired of the succes of the DQN, which allow it to use neural networks function approximators to learn in state and action space online. 
+Introducing non-linear function approximators means that convergence is no longer guaranteed. The approximators is essential to learn and generalize on large state spaces. The DDPG contribution is to provide modification to DPG inspired of the success of the DQN, which allow it to use neural networks function approximators to learn in state and action space online.  
 
-One of the challenges of using neural networks for reinforcement learning is that most optimization algorithms assume that the samples are independently  and identically distributed. To solve this problem a replay buffer is used, it is sampling a minibatch uniformly from the buffer - more about the replay buffer see \Cref{sec:DQN}. Because the DDPG is a off-policy algorithm, the replay buffer can be large, allowing the algorithm to benefit from learning across a set of uncorrelated transition.
+One of the challenges of using neural networks for reinforcement learning is most optimization algorithms assume that the samples are independently and identically distributed. To solve this problem a replay buffer is used, it samples a minibatch uniformly from the buffer - more about the replay buffer see \Cref{sec:DQN}. Because the DDPG is an off-policy algorithm, the replay buffer can be large, allowing the algorithm to benefit from learning across a set of uncorrelated transition. 
 
 \subsubsection{Update weights}
-Directly implementing the Q learning with neural networks is unstable in many environments. Since network $Q(s,a|\theta^Q)$ being updated is also used in calculating the target value, the Q update is likely to divergence. It is modified from the DQN algorithm for actor-critic using "soft" target updates, instead of directly updating the weights. This is done by creating a copy of the actor and critic networks, $Q'(s,a|\theta^{Q'})$ and $\mu'(s|\theta^{\mu'})$ respectively, they are used for calculating the target values. The weights of these target networks are then updated by having them slowly track the learned networks:
+Directly implementing the Q learning with neural networks is unstable in many environments. Since network $Q(s,a|\theta^Q)$ being updated is also used in calculating the target value, the Q update is likely to divergence. It is modified from the DQN algorithm for actor-critic using "soft" target updates, instead of directly updating the weights. This is done by creating a copy of the actor and critic networks, $Q'(s,a|\theta^{Q'})$ and $\mu'(s|\theta^{\mu'})$ respectively, they are used for calculating the target values. The weights of these target networks are then updated by having them slowly track the learned networks: 
 \begin{equation}
 \theta' \leftarrow \tau \theta + (1-\tau)\theta'   \quad \textrm{with} \quad \tau \ll 1 
 \end{equation}   
-This means that the target values are constrained to change slowly, greatly improving the stability af learning. This change helps the unstable problem of learning the action-value function closer to the case of supervised learning, where a robust solution exist. The DDPG needs both a target $\mu'$ and $Q'$ was required to have stable targets $y_i$ in order to consistently train the critic without divergence. It may slow learning, since the target network delays the propagation of value estimations. In practice it is better because the stability of training is more important than the learning speed.
+This means that the target values are constrained to change slowly, greatly improving the stability of learning. This change helps the unstable problem of learning the action-value function closer to the case of supervised learning, where a robust solution exists. The DDPG needs both a target $\mu'$ and $Q'$ was required to have stable targets $y_i$ to consistently train the critic without divergence. It may slow learning, since the target network delays the propagation of value estimations. In practice, it is better because the stability of training is more important than the learning speed. 
 
 \subsubsection{Batch normalization}
-Different components of the observation may have different physical units (for example, posistion versus velocities) and the ranges may changes through the different environments. This can make it difficult for the network to learn effectively and may make it difficult to find hyper-parameters which generalize across environments with different scales of state values.
+Different components of the observation may have different physical units (for example, position versus velocities) and the ranges may change through the different environments. This can make it difficult for the network to learn effectively and may make it difficult to find hyper-parameters which generalize across environments with different scales of state values.
 
-One approach to solve this problem is to manually scale the features so they have similar ranges across different environments and units . The way this problem is solved in the DDPG algorithm is by using a technique for deep learning called batch normalization. This technique normalize each dimension across the samples in a minibatch to have a unit mean and variance. It maintain a running average of the mean and variance to use for normalization during training, in the DDPG for exploration or evaluation. In a low-dimensional case the batch normalization is used on the state input an all layers of the actor network ($\mu$ network) and all layers of the critic network ($Q$ network) prior to the action input. With batch normalization the DDPG is able to learn effectively across many different tasks with different types of units, without needing to manually ensure units in different ranges.
+One approach to solve this problem is to manually scale the features so they have similar ranges across different environments and units. The way this problem is solved in the DDPG algorithm is by using a technique for deep learning called batch normalization. This technique normalizes each dimension across the samples in a minibatch to have a unit mean and variance. It maintains a running average of the mean and variance to use for normalization during training, in the DDPG for exploration or evaluation. In a low-dimensional case the batch normalization is used on the state input and all layers of the actor network ($\mu$ network) and all layers of the critic network ($Q$ network) prior to the action input. With batch normalization, the DDPG is able to learn effectively across many different tasks with different types of units, without needing to manually ensure units in different ranges.
 
 \subsubsection{Exploration}
-A major challenge of learning continuous action spaces is exploration. An advantage of off-policy algorithm such as DDPG is that it can treat problems of exploration independently from learning algorithm. The DDPG has an exploration policy $\mu'$ by adding noise sampled from a noise process $N$ to the actor policy:
+A major challenge of learning continuous action spaces is exploration. An advantage of off-policy algorithm such as DDPG, is that it can treat problems of exploration independently from learning algorithm. The DDPG has an exploration policy $\mu'$ by adding noise sampled from a noise process $N$ to the actor policy: 
 \begin{equation}
 \mu'(s_t) = \mu(s_t|\theta_t^\mu) + N
 \end{equation} 
-N can be choosen to suit the environment. The noise can be added using Ornstein-Uhlenbeck process to do the exploration.
+N can be chosen to suit the environment. The noise can be added using a process called Ornstein-Uhlenbeck to do the exploration.
 
 The DDPG algorithm can be seen on \Cref{algo:DDPG}, it is the algorithm DeepMind uses \cite{DBLP:journals/corr/LillicrapHPHETS15}.  
 
@@ -82,11 +82,11 @@ The DDPG algorithm can be seen on \Cref{algo:DDPG}, it is the algorithm DeepMind
 
 
 \subsection{Network}
-To use the DDPG algorithm 3 networks need to be created, an actor network, a critic network and a target network. To understand the structure of these networks, we will use an example from the torcs environment \cite{DDPG_Torcs}. In this example is the sensor input from the car used as the state of the environment. It has 29 different sensor inputs \cite{Data_from_Torcs}, so the state space has the size of 29. 
+To use the DDPG algorithm 3 networks need to be created, an actor network, a critic network and a target network. To understand the structure of these networks, we will use an example from the TORCS environment \cite{DDPG_Torcs}. In this example, the input is the sensor data from the car used as the state of the environment. It has 29 different sensor inputs \cite{Data_from_Torcs}, so the state space has the size of 29.  
 
-Before the actor and critic network are explained, the actor-critic algorithm will be explained. The Actor-Critic Algorithm is a hybrid method which combine the policy gradient method and the value function method. The policy is known as the actor, while the value function is the critic. The actor produce a action $a$ given the current state of the environment $s$ . The critic then produce a signal to criticizes the actions made by the actor. To refer to the human world is this a normal behavior, where the junior employee (actor) do the actual job and his boss (critic) criticizes the work and hopefully the junior employee can do it better next time. In the TORCS example, it uses the continuous Q-learning (SARSA) as the critic model and use policy gradient method as the actor model. The following figure explains the relationships between Value Function/Policy Function and Actor-Critic Algorithm.    
+Before the actor and critic network are explained, the actor-critic algorithm will be explained. The actor-critic algorithm is a hybrid method which combine the policy gradient method and the value function method. The policy is known as the actor, while the value function is the critic. The actor produces an action $a$ given the current state of the environment $s$. The critic then produces a signal to criticizes the actions made by the actor. To refer to the human world is this a normal behavior, where the junior employee (actor) do the actual job and his boss (critic) criticizes the work and hopefully the junior employee can do it better next time. In the TORCS example, it uses the continuous Q-learning (SARSA) as the critic model and uses policy gradient method as the actor model. The following figure explains the relationships between Value Function, Policy Function and actor-critic algorithm.    
 
-The tricks from the Deep Q Network is used, where the Q function is replaced with a neural network $Q^\pi(s,a) \approx Q(s,a,w)$ where w is the weight of the neural network. This end up with the formula for Deep Deterministic Policy Gradient:
+The tricks from the Deep Q-Network is used, where the Q function is replaced with a neural network $Q^\pi(s,a) \approx Q(s,a,w)$ where w is the weight of the neural network. This end up with the formula for Deep Deterministic Policy Gradient: 
 \begin{equation}
 \frac{\partial L(\theta)}{\partial \theta} =\frac{\partial Q(s,a,w)}{\partial a} \frac{\partial a}{\partial \theta}
 \end{equation}
@@ -97,7 +97,7 @@ As in the DQN an iterative method is used to solve the Q-function, where the los
 Loss = [r + \gamma Q(s',a') - Q(s,a)]^2
 \end{equation} 
 
-The Q-value can be used to estimate the values of the current actor policy. The actor-critic algorithm can be seen on figure \Cref{fig:Actor_critic_architecture} 
+The Q-value can be used to estimate the values of the current actor policy. The actor-critic algorithm can be seen on figure \Cref{fig:Actor_critic_architecture}. 
 
 \begin{figure}[H]
 	\centering
@@ -107,7 +107,7 @@ The Q-value can be used to estimate the values of the current actor policy. The 
 \end{figure}
 
 \subsubsection{Actor network}
-The Actor network is created using  2 hidden layers with 300 hidden units and 600 hidden units. The output consist of 3 continuous actions, Steering, which is a single unit with tanh activation function (where -1 means max right turn and +1 means max left turn). Acceleration, which is a single unit with sigmoid activation function (where 0 means no gas, 1 means full gas). Brake, another single unit with sigmoid activation function (where 0 means no brake, 1 full brake). The actor network can be seen on \Cref{fig:DDPG_Actor_network}. The hidden layers are all full connected layers. To be able to send the actions to the game the three different actions (steering, acceleration and brake) has to be merge to the same action. 
+The Actor network is created using two hidden layers with 300 hidden units and 600 hidden units. The output consists of three continuous actions, Steering, which is a single unit with tanh activation function (where -1 means turn maximum right and +1 means turn maximum left). Acceleration, which is a single unit with sigmoid activation function (where 0 means no gas, 1 means full gas). Brake, another single unit with sigmoid activation function (where 0 means no brake, 1 full brake). The actor network can be seen on \Cref{fig:DDPG_Actor_network}. The hidden layers are all full connected layers. To be able to send the actions to the game the three different actions (steering, acceleration and brake) must be merge to the same action.
 
 \begin{figure}[H]
 	\centering
@@ -118,7 +118,7 @@ The Actor network is created using  2 hidden layers with 300 hidden units and 60
 
 
 \subsubsection{Critic network}
-The construction of the Critic Network is very similar to the Deep Q Network described in \Cref{sec:DQN}. The only difference is that we used 2 hidden layers with 300 and 600 hidden units. The critic network takes both the states and the action as inputs. According to the DDPG paper \cite{DBLP:journals/corr/LillicrapHPHETS15}, the actions were not included until the 2nd hidden layer of Q-network. This critic network can be seen on \Cref{fig:DDPG_Critic_network}. On the figure is there a third hidden layer, but it is still the second layer, just the state, merged with the actions in the second layer.
+The construction of the Critic Network is very similar to the Deep Q-Network described in \Cref{sec:DQN}. The only difference is that is uses two hidden layers with 300 and 600 hidden units. The critic network takes both the states and the action as inputs. According to the DDPG paper \cite{DBLP:journals/corr/LillicrapHPHETS15}, the actions were not included until the 2’nd hidden layer of Q-network. This critic network can be seen on \Cref{fig:DDPG_Critic_network}. On the figure is a third hidden layer shown, but it is still the second layer, just the state, merged with the actions in the original second layer. 
 
 \begin{figure}[H]
 	\centering
@@ -131,7 +131,7 @@ The construction of the Critic Network is very similar to the Deep Q Network des
 The way the actor and critic network is used for learning how to play TORCS is: 
 \begin{enumerate}
 	\item The sensor data is received from the environment (TORCS) 
-	\item The sensor input will be fed into our Neural Network, and the network will output 3 real numbers (value of the steering, acceleration and brake)
+	\item The sensor input will be fed into the neural network, and the network will output 3 real numbers (value of the steering, acceleration and brake)
 	\item The network will be trained many times, via the Deep Deterministic Policy Gradient, to maximize the future expected reward.
 \end{enumerate}
 
