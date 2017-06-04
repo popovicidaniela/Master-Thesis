@@ -1,15 +1,15 @@
 \section{Tracks}\label{Tracks}
-In the TORCS environment is it possible to change the tracks the car is racing in. This is done, to see how it will effect the training. The different tracks is also used for testing. It is possible to test if the car has learned how to drive, by training the car on one track, and then testing it on another track. The car should then be able to drive on both track.  
+In the TORCS environment is it possible to change the tracks the car is driving in. This is done, to see how different tracks will affect the training. The different tracks are also used for testing. It is possible to test if the car has learned how to drive, by training the car on one track, and then testing it on another track. The car should then be able to drive on both track. This is also known from supervised learning, where the network is trained on one set of data, and tested on another set of data to see how the network performs.   
 
-The setup to test this is the setup as described in the introduction to this \Cref{cha:Result}. The same setup is then used in all the different track the car has been training on, this is done to make sure that the results from the different track have the same parameters on all the tracks. 
+The setup for testing is described in the introduction to this \Cref{cha:Result}. The same setup is then used on all the different tracks the car has been trained on, this is done to make sure that the results from the different tracks has the same parameters.  
 
-In the environment TORCS there are many different tracks. To get the agent to learn how to drive, a simple track was decided. This was done due to more complicated tracks, had more obstacles like bridges, tress and mountains. A problem with these obstacles is if the agent has to turn left for the first time and it sees many tress there. Then the agent could end up learning it has to turn left every time it sees a tree. then it will take longer for the agent to learn how to drive if there is many obstacles it has to take into account. 
+In the TORCS environment there are a wide selection of different tracks. To get the agent to learn how to drive, a simple track was decided. This was done due to more complicated tracks, had more obstacles like bridges, tress and mountains. A problem with these obstacles, is if the agent should turn left for the first time and it sees many trees at the turning point. Then the agent could end up learning it should turn left every time it sees a tree. It will take longer time for the agent to learn how to drive, if there is many obstacles on the track.   
 
-Another issue seen on more complicated tracks is the road the car drives on some times changes through the track also the boundaries of the track can change. This will make it complicated from an agent to learn something, and maybe ending up not learning how to drive. The biggest issue is it will also increase the training time, which will be to long. 
+Another issue seen on more complicated tracks, is the road on the track. This road can sometimes change through the same track. The edges of the road can also change on the same track. The changes of the road and edges, will make it complicated for an agent to learn something, and maybe ending up not learning how to drive. Another problem is it will also increase the training time. 
 
-The track shouldn't be to simple, it still has to look like a real road, it also need to have some turns both left and right, so it learns how to drive. 
+The track shouldn't be too simple, it still must look like a real road, it needs to have some turns both left and right, so it learns how to drive. 
 
-The track which has been used mostly in this project is a simple track, which have the same road type in the whole track. The track also doesn't have obstacles, only grass around the road, and to boundary from the road to the grass is red and white stripes on the whole track. It has both left and right turns, and also just straight forward, the agent then learn all the different scenarios. The track used mostly in this project can be seen on \Cref{fig:track_simple_1}.
+The track mostly used in this project, is a simple track, which have the same road type in the whole track. The track doesn't have obstacles, only grass around the road, and the edges of the road is red and white stripes on the whole track. The track has both left and right turns, and places with no turning. It is then possible for the agent to learn different scenarios. The track mostly used in this project can be seen on \Cref{fig:track_simple_1}.
 
 \begin{figure}[H]
 	\centering
@@ -18,9 +18,9 @@ The track which has been used mostly in this project is a simple track, which ha
 	\label{fig:track_simple_1}
 \end{figure}
 
-To find other tracks to train and test on, it has to look similar to the one on \Cref{fig:track_simple_1}, because as mentioned before it learns from the input image. So if it should be possible to test the trained agent, it has to see some of the same things on the test track as on the training track. In the TORCS environment there are three tracks, which look similar the one on \Cref{fig:track_simple_1} and two others. 
+To find different tracks, to train and test the agent on, it has to look similar to the one on \Cref{fig:track_simple_1}. It is because the agent only learns from the input image. If it should be possible to test the trained agent, it should see some of the same things on the test track as on the training track. In the TORCS environment there are three different tracks, which look similar to the one on \Cref{fig:track_simple_1}. 
 
-The second track used in this project is a track which looks really similar to the first track, and the name is simple\_2 instead of simple\_1. The only difference from the first track is, it is mirrored. This mean that all the turns are exactly opposite. The track is thereby good for testing, because it has different turns than the first track. The second track can be seen on \Cref{fig:track_simple_2}.
+The second track used in this project is a track looking very like the first track, and the name is simple\_2 instead of simple\_1. It is the first track mirrored – it is opposite form the first track. All turns are exactly opposite. The track is thereby good for testing, because it has different turns than the first track. The second track can be seen on \Cref{fig:track_simple_2}. 
 
 \begin{figure}[H]
 	\centering
@@ -29,7 +29,7 @@ The second track used in this project is a track which looks really similar to t
 	\label{fig:track_simple_2}
 \end{figure}
 
-The last track is similar to the two other tracks on \Cref{fig:track_simple_1} and \Cref{fig:track_simple_2}. The only difference is it is more simple, only has left turns. Another difference form the other two tracks is the length it is much longer than the other tracks. It is because of this length it is used to see how the agent learns on a different track with a longer distance. The last used track in this project can be seen on \Cref{fig:track_longstr}. 
+The last track used in this project, also looks similar to the two other tracks on \Cref{fig:track_simple_1} and \Cref{fig:track_simple_2}. The track is simpler, it only has left turns. Another difference from the other two tracks is the length, it is much longer than the other tracks. The different length is used to test how the agent learns on a different track with a longer distance. The last track used in this project can be seen on \Cref{fig:track_longstr}.
 
 \begin{figure}[H]
 	\centering
@@ -40,9 +40,9 @@ The last track is similar to the two other tracks on \Cref{fig:track_simple_1} a
 
 
 \subsection*{Training}
-In this project, it is tested if the tracks has an influence on the training. This is done to see if there is some of the used track which is better to train on than others.
+It is tested if the tracks have an influence on the training. This is done to see if some of the used tracks are performing better on training than others. 
 
-To compare this training the reward graph is used, the agent has trained on the three different tracks (\Cref{fig:track_simple_1}, \Cref{fig:track_simple_2} and \Cref{fig:track_longstr}). Here it would be better if the reward is growing faster on one of the tracks than the others, and even more important converge to the optimal reward faster. The reward graph can be seen on \Cref{fig:change_of_track_reward_graph}.
+To compare the training, the reward graph is used. An agent with the same parameters, has trained on the three different tracks (\Cref{fig:track_simple_1}, \Cref{fig:track_simple_2} and \Cref{fig:track_longstr}). It is tested if the reward is growing faster on one of the tracks than the others, and even more important converge to the optimal reward faster. The reward graph can be seen on \Cref{fig:change_of_track_reward_graph}. 
 
 \begin{figure}[H]
 	\centering
@@ -51,9 +51,9 @@ To compare this training the reward graph is used, the agent has trained on the 
 	\label{fig:change_of_track_reward_graph}
 \end{figure}
 
-As seen on \Cref{fig:change_of_track_reward_graph} the different track have a small influence on when the reward starts learning. The track longstr learns around 270 time-steps, simple\_1 around 320 time-steps and simple\_2 around 370 time-steps. Here it is hard to say why it learns faster on the simple\_1 track than the simple\_2, because it is the same track just mirrored. It could be the decision taking on the simple\_1 track is better than the one on simple\_2, so another training would then maybe vary a bit. Here it also seems to learn the track longstr faster, this could be because it is simpler than the other tracks.  
+As seen on \Cref{fig:change_of_track_reward_graph} the different tracks has a small influence on when the reward starts learning. The track longstr learns around 270 time-steps, simple\_1 around 320 time-steps and simple\_2 around 370 time-steps. It is hard to say why the agent learns faster on the simple\_1 track than the simple\_2 track, because it is the same track just mirrored. It could be the exploration on the simple\_1 track is better than the one on simple\_2. Here it also seems to learn the track longstr faster, this could be because it is a simpler track than the two other tracks.  
 
-The difference is the reward on the third track, which can be seen to converge to a bigger reward 43, than the reward from the two other tracks 11. This is because of the length of the track. It can get a bigger reward, when the track is longer. The reward is given by every step and added together to a total reward, this means if there is more steps, then the total reward is bigger. Another way to look at it is the length of every time-step is longer. The length of the episodes on the different tracks can be seen on \Cref{fig:change_of_track_length_graph }     
+The biggest different on \Cref{fig:change_of_track_reward_graph} is the reward on the third track. This reward is converging to a bigger reward 44, than the reward from the two other tracks 11. This is due to the length of the track. Because the agent will get a bigger reward, when the track is longer. The reward is given by every step and added together to a total reward, if there are more steps, then the total reward is bigger. Another way to look at it, is the length of every time-step is longer. The length of the time-steps on the different tracks can be seen on \Cref{fig:change_of_track_length_graph}.      
 
 \begin{figure}[H]
 	\centering
@@ -69,10 +69,9 @@ Because the track is 3-4 times longer the reward is also 3-4 times bigger:
 \begin{equation}
 \frac{\mathrm{Reward \ of \ longstr}}{\mathrm{Reward \ of \ simple\_1}} = \mathrm{Reward \ difference}   \qquad \rightarrow \qquad \frac{44}{11} = 4
 \end{equation}
-By looking of the result of the two equations, it looks like the bigger reward is just the difference of the length of the tracks. 
+By looking at the result of the two equations, it looks like the bigger reward is the difference of the length of the tracks. 
 
-
-After these result the track which have been used in all the other trainings is the first track seen on \Cref{fig:track_simple_1}. To test if the agent has learned how to drive the second track is used seen on \Cref{fig:track_simple_2}. If the agent is able to complete a lap on both of these tracks it is concluded the agent has learned how to drive.   
+After these result the track which have been used in all the other trainings, is the first track seen on \Cref{fig:track_simple_1}. To test if the agent has learned how to drive, the second track is used seen on \Cref{fig:track_simple_2}. If the agent can complete a lap on both tracks it is concluded the agent has learned how to drive.    
 
 
 
