@@ -2,16 +2,16 @@
 \label{sec:DQN}
 The first deep reinforcement learning network that there has been, and which was created in this project as well, is the Deep Q-Network. The Deep Q-Network was first described in the paper "playing Atari with Deep reinforcement learning" \cite{DBLP:journals/corr/MnihKSGAWR13} published by DeepMind. In this paper, they made a computer learn to play Atari 2600 video games. The computer only observed the screen pixels from the game and received a reward when the game score increased. The result was remarkable, because the goals in every game are very different. The same architecture was used for seven different games. In 3 of the seven games, the computer performed better than the best human.
 
-In order to understand the problem that the Deep Q Network solved, it is easier to use an example. The game Breakout is going to be used as an example here. In this game, you control a paddle at the bottom of the screen and must clear the bricks on the top of the screen. This is done by bouncing a ball between the paddle and the bricks. Each time a brick is hit, it disappears and the game score increases. Some illustrations of the game can be seen on the \Cref{fig:Atari_breakout}.
+In order to understand the problem that the Deep Q-Network solved, it is easier to use an example. The game Breakout is going to be used as an example here. In this game, you control a paddle at the bottom of the screen and must clear the bricks on the top of the screen. This is done by bouncing a ball between the paddle and the bricks. Each time a brick is hit, it disappears and the game score increases. Some illustrations of the game can be seen on the \Cref{fig:Atari_breakout}.
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=1\textwidth]{Figures/Architecture/DQN/Atari_breakout.png}
-	\caption{Atari Breakout game. Image credit: DeepMind\cite{DBLP:journals/corr/MnihKSGAWR13} }
+	\caption{Atari Breakout game  DeepMind\cite{DBLP:journals/corr/MnihKSGAWR13} }
 	\label{fig:Atari_breakout}
 \end{figure}
 
-In order to teach a Network how to play this game, the input to the network is the screen image, and the outputs are the actions of the game: left, right or fire (to launch the ball). One approach to this problem is to treat it as a classification problem - for each screen decide if the paddle should move left, right or press fire. In order to achieve this, lots of training examples are needed. The problem with this approach is that this is not how the human learns. Humans don't need someone to tell them a million times, which move to choose at each screen. The human, instead, just needs occasional feedback, that he did the right thing, and that's how he learns from experience. This is the task reinforcement learning tries to solve. More of the reinforcement learning theory can be read in \Cref{Theoretical Background}. 
+In order to teach a Network how to play this game, the input to the network is the screen image, and the outputs are the actions of the game: left, right or fire (to launch the ball). One approach to this problem is to treat it as a classification problem - for each screen decide if the paddle should move left, right or press fire. In order to achieve this, lots of training examples are needed. The problem with this approach is that this is not how the human learns. Humans don't need someone to tell them a million times, which move to choose at each screen. The human, instead, just needs occasional feedback, that he did the right thing, and that's how he learns from experience. This is the task reinforcement learning tries to solve. More of the reinforcement learning theory can be read in \Cref{TheorBkgdRL}. 
 
 While the idea is quite intuitive, in practice there are numerous challenges. One of the challenges is that when hitting a brick and the reward is received, it often has nothing to do with the action (paddle movement) just before the reward was received. All the work was done when the paddle was positioned correctly and bounced the ball back. This is called the credit assignment problem – i.e., which of the preceding actions was responsible for getting the reward, and to what extent. 
 
@@ -20,23 +20,23 @@ Another challenge is when a strategy is found and a certain reward is received. 
 The screen pixels obtain most of the relevant information of the game situation, except speed and direction of the ball. This could be covered by having two consecutive screens.
 
 \subsection{Preprocessing}
-The DeepMind paper uses preprocessing, where they take the last four screen images, resize them to 84x84 and convert to grayscale with 256 gray levels. This will give $256^{84x84x4} \approx 10^{67970}$ possible game states. It will give $10^{67970}$ rows in the imaginary Q-table - more than the number of atoms in the universe. Many pixel combinations never occur, so it is possible to represent them as a sparse table containing only visited states. Most of the states are rarely visited and it would take a lifetime for the q-table to converge. It should also be possible to have a good guess for Q-values for the states that were never seen.  
+The DeepMind paper uses preprocessing, where they take the last four screen images, resize them to 84x84 and convert to grayscale with 256 gray levels. This will give $256^{84x84x4} \approx 10^{67970}$ possible game states. It will give $10^{67970}$ rows in the imaginary Q-table - more than the number of atoms in the universe. Many pixel combinations never occur, so it is possible to represent them as a sparse table containing only visited states. Most of the states are rarely visited and it would take a lifetime for the Q-table to converge. It should also be possible to have a good guess for Q-values for the states that were never seen.  
 
 In order to solve this problem, deep learning comes into the picture. Neural networks are extremely good at coming up with good features for highly structured data. A way that the neural networks can be used in reinforcement learning is that it could represent the Q-function, where it takes the state (four-game screens) and action as an input and outputs the corresponding Q-value. Another way is to only take game screens as input, and output the Q-value for each possible action. The second approach has the advantages, that if we want to perform a Q-value update or choose the action with the highest Q-value, it can be done by only doing one forward pass in the network and get all the Q-values for all the possible actions. The two different approaches for using a neural network as a representation of the Q-function can be seen on \Cref{fig:DQN_two_approach}.               
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=1\textwidth]{Figures/Architecture/DQN/DQN_two_approach.pdf}
-	\caption{Left: Naive formulation of deep Q-network. Right: More optimized architecture of deep Q-network, used in DeepMind paper.} 
+	\caption{Left: Naive formulation of Deep Q-Network. Right: More optimized architecture of deep Q-network, used in DeepMind paper.} 
 	\label{fig:DQN_two_approach}
 \end{figure}    
 
 \subsection{Network}
-The network architecture that DeepMind used can be seen on the \Cref{tab:DQN_network} below.
+The network architecture that DeepMind used can be seen below on \Cref{tab:DQN_network}.
 
 \begin{table}[H]
 	\centering
-	\caption{Architecture of the Deep Q Network used by DeepMind}
+	\caption{Architecture of the Deep Q-Network used by DeepMind}
 	\label{tab:DQN_network}
 	\begin{tabular}{|l|c|c|c|c|c|c|}
 		\hline
@@ -79,7 +79,7 @@ In reinforcement learning the Exploration-Exploitation dilemma consists of wheth
 A simple way to do this is by using the $\epsilon$-greedy exploration - choose a random action with probability $\epsilon$, otherwise go with the “greedy” action with the highest Q-value. DeepMind decreases $\epsilon$ over time from 1 to 0.1. This means that in the beginning, the system makes random actions to explore the state space maximally, and in the end, it settles to a fixed exploration rate.
 
 \subsubsection{Algorithm}
-All this theory ends up in an algorithm of the Deep Q Network with experience replay, which can be seen below in \Cref{algo:DQN}. This is the algorithm from DeepMind \cite{DBLP:journals/corr/MnihKSGAWR13}.
+All this theory ends up in an algorithm of the Deep Q-Network with experience replay, which can be seen below in \Cref{algo:DQN}. This is the algorithm from DeepMind \cite{DBLP:journals/corr/MnihKSGAWR13}.
 
 \begin{algorithm}
 	\caption{Deep Q-learning with Experience Replay}
@@ -110,5 +110,5 @@ All this theory ends up in an algorithm of the Deep Q Network with experience re
 
 These are some of the tricks DeepMind used to get the Deep Q-Network to work, but they use other tricks, too. Some of the other tricks they used are target network, error clipping, reward clipping, etc.. 
 
-The amazing part of the Deep Q-Network is that it learns. Because the Q-function is initialized randomly, its first outputs don't make sense at all. The network then uses these outputs (the maximum Q-value of the next state) as targets for the network, only occasionally folding in a tiny reward. This is what made the Deep Q Network, the state-of-the-art, when it was published in \cite{DQN_theory} and \cite{DQN_Flappy}.
+The amazing part of the Deep Q-Network is that it learns. Because the Q-function is initialized randomly, its first outputs don't make sense at all. The network then uses these outputs (the maximum Q-value of the next state) as targets for the network, only occasionally folding in a tiny reward. This is what made the Deep Q-Network, the state-of-the-art, when it was published in \cite{DQN_theory} and \cite{DQN_Flappy}.
         
