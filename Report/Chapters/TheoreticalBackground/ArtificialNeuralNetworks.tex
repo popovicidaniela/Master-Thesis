@@ -8,7 +8,7 @@ Depending on the structure of the network, there are different types of ANNs. Fo
 	\caption{Feedforward ANN}
 	\label{fig:feedforward}
 \end{figure}
-Some ANNs can be called \textit{deep}. This qualifier describes the networks that have many hidden layers, precisely more than two. More hidden layers would compute more abstract representations of the input data, which means richer features. Deep ANNs are harder to train, but they are more powerful and are especially used in modern artificial intelligence applications.
+Some ANNs can be proclaimed as \textit{deep}. This qualifier describes the networks that have many hidden layers, precisely more than two. More hidden layers would compute more abstract representations of the input data, which means richer features. Deep ANNs are harder to train, but they are more powerful and are especially used in modern artificial intelligence applications.
 
 Usually, ANNs learn by an SGD method. More precisely, learning implies the definition of an objective function that describes the performance of the network, and, which is either minimized or maximized. An objective function can be the loss of the network over a set of training examples. In RL, an ANN can use TD errors in computing the loss function and learning the value function, or maximize the reward, or use a policy gradient algorithm \cite{Sutton}. No matter the case, the partial derivatives are required to determine the influence of a weight change on the network's performance, and they can be obtained with the help of the gradient.
 
