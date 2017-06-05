@@ -6,6 +6,8 @@ The Open Racing Car Simulator or TORCS is a highly portable multi platform car r
 
 Gym-TORCS is a reinforcement learning environment in the TORCS domain. It is made to have an interface which matched Open-AI - A toolkit for developing and comparing reinforcement learning algorithms. It supports teaching agents everything from walking to playing games like Pong or Go \cite{OPENAI_website}. It is smart to match the Open-AI interface because it combines a lot of environment to solve different reinforcement learning tasks. This is done by a simple interface to make it easier to use. \cite{Gym_TORCS_website}. 
 
+\newpage
+
 Some points why TORCS is useful as an environment for reinforcement learning:
 \begin{itemize}
 	\item The AI can learn how to drive
@@ -13,7 +15,6 @@ Some points why TORCS is useful as an environment for reinforcement learning:
 	\item It is easy to visualize when the neural network gets stuck in a local minimum.
 	\item Gives an understanding of machine learning technique in automated driving, which is important for autonomous driving technologies 
 \end{itemize}
-
 Some pictures from TORCS can be found on \Cref{fig:torcs_screenshots} below:
 \begin{figure} [H]
 	\centering
@@ -36,7 +37,7 @@ Some pictures from TORCS can be found on \Cref{fig:torcs_screenshots} below:
 	\caption{Screenshots from the TORCS environment}
 	\label{fig:torcs_screenshots}
 \end{figure}
-      
+\newpage      
 \subsection{Uses in this project}      
 The way this environment has been used is by getting information from the TORCS domain. This information could be the game screen, so the pixels of the game. Another thing the environment has been used for is to send commands to the game - like steering the car. 
 The reinforcement learning should be able to train a network, where the input to the network is the information coming from the game. The output from the network is the determined action, which then will be sent to the game. This interaction between the game and the network can be seen on \Cref{fig:TORCS_interaction}.   

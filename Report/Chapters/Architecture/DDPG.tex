@@ -143,7 +143,7 @@ The actual training is not that complicated. First update the critic by minimizi
 \begin{equation}
 L = \frac{1}{N} \sum_{i} (y_i - Q(s_i,a_i|\theta^Q))^2
 \end{equation}
-
+\newpage
 Then the actor policy is updated using the sampled policy gradient:
 \begin{equation}
 \triangledown_\theta J = \frac{\partial Q^\theta(s,a)}{\partial a} \frac{\partial a }{\partial \theta}
