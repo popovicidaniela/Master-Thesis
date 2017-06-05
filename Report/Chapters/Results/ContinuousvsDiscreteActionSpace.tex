@@ -8,7 +8,7 @@ The discrete policy estimates the probabilities of taking each possible action i
 The results of training for a single action - steering, are present at the beginning of this chapter in the figures \ref{fig:RewardHours}, \ref{fig:Reward}, \ref{fig:Length}, \ref{fig:Value}, \ref{fig:ValueLoss}, \ref{fig:PolicyLoss}, \ref{fig:EntropyLoss}, and \ref{fig:Loss}. More actions have also been tried. The acceleration action is handled by the environment when the Throttle option is set to False. When we want to send the acceleration as a discrete action instead, the environment should not use the Throttle anymore, but just receive our action. The acceleration range is [0, 1], and the discrete acceleration used is 0.2. The comparison between training only steering (1 action) and training steering and acceleration (2 actions) are provided in the following figure:
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.8\textwidth]{Figures/2Actions}
+	\includegraphics[width=1\textwidth]{Figures/2Actions}
 	\caption{Reward of training Steering (1 actions) vs. Steering + Acceleration (2 actions)}
 	\label{fig:2Actions}
 \end{figure}
