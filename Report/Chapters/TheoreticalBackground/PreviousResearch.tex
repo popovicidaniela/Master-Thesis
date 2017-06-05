@@ -1,15 +1,16 @@
 \section{Previous Research}
 \label{Previous_Research}
-This section summarizes four important papers, which all have made a big impact in the area of deep reinforcement learning. The most important concepts are described for each of the papers. This section will give an overview of state-of-the-art in deep reinforcement learning.    
+This section summarizes four important papers, which all have made a big impact in the area of deep reinforcement learning. The most important concepts are described for each of the papers. This section will give an overview of the state-of-the-art in deep reinforcement learning.    
 
 \subsection{Playing Atari with Deep Reinforcement Learning }
 The paper \cite{DBLP:journals/corr/MnihKSGAWR13} was published in 2013 by DeepMind Technologies. It is the first paper to make a deep learning model to successfully learn control policies directly from sensory input using reinforcement learning. 
 
-The paper presents some of the challenges by using deep learning to do reinforcement learning. One of the challenges is that the deep learning algorithms require a large amount of hand labeled training data. Another challenge is the delay between action and resulting reward, which can be thousands time-steps long. The paper demonstrates that a convolutional neural network can overcome these challenges.  
+The paper presents some of the challenges by using deep learning to do reinforcement learning. One of the challenges is that the deep learning algorithms require a large amount of hand-labeled training data. Another challenge is the delay between action and resulting reward, which can be thousands of time-steps long. The paper demonstrates that a convolutional neural network can overcome these challenges.  
 
-The paper's goal is to connect a reinforcement learning algorithm to a deep neural network which uses RGB images and processes training data by using stochastic gradient updates. The starting point for this approach is to use Tesauro's TD-Gammon \cite{Tesauro:1995:TDL:203330.203343} architecture. The network is different from TD-Gammon and other online approaches, because it uses a technique known as experience replay, where the agent stores it's own experiences at each time-step.
+The paper's goal is to connect a reinforcement learning algorithm to a deep neural network which uses RGB images and processes training data by using stochastic gradient updates. The starting point for this approach is to use Tesauro's TD-Gammon \cite{Tesauro:1995:TDL:203330.203343} architecture. The network is different from TD-Gammon and other online approaches because it uses a technique known as experience replay, where the agent stores it's own experiences at each time-step.
 
-The input to the neural network is an $84 x 84 x 4$ image. The output from the neural network is a value for each valid action. The architecture of the network can be seen on \Cref{fig:playing_atari}.    
+The input to the neural network is an $84 x 84 x 4$ image. The output from the neural network is a value for each valid action. The architecture of the network can be seen on \Cref{fig:playing_atari}.
+   
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.7\textwidth]{Figures/TheoreticalBackground/playing_atari.jpg}
@@ -31,11 +32,11 @@ By combining tree search with policy and value networks, \textit{AlphaGo} has re
 \subsection{Asynchronous Methods for Deep Reinforcement Learning}\label{AsyncMeths}
 This is another paper \cite{DBLP:journals/corr/MnihBMGLHSK16} from the team behind \cite{DBLP:journals/corr/MnihKSGAWR13} paper, and was published in 2016. This paper provides a very different paradigm for deep reinforcement learning. Instead of experience replay, it asynchronously executes multiple agents in parallel, on multiple instances of the environment. 
 
-This simple idea enables a much larger spectrum of the on-polic yas well as off-policy reinforcement learning algorithms, to be applied robustly and effectively using deep neural networks. It also offers practical benefits - this experiment can run on a single machine with a standard multi-core CPU, instead of GPUs.
+This simple idea enables a much larger spectrum of the on-police as well as off-policy reinforcement learning algorithms, to be applied robustly and effectively using deep neural networks. It also offers practical benefits - this experiment can run on a single machine with a standard multi-core CPU, instead of GPUs.
 
 The paper presents asynchronous versions of four standard reinforcement algorithms used on different platforms. The platform used is a simulator for Atari 2600, Torcs 3D car racing simulator, Mujoco, and Labyrinth. The asynchronous advantage actor-critic (A3C) algorithm resulted in the best performing agent on all the platforms.
 
-The A3C beats the state-of-the-art result in 26 of 57 Atari games. This is a big improvement from previous reinforcement networks. When trained on the Atari domain using 16 CPU cores, the proposed asynchronous algorithm trains faster than the Deep Q-Network trains on an Nvidia K40 GPU, with A3C surpassing the state-of-th-art with half the training time. The A3C method is explained more in details in \Cref{sec:A3C}.
+The A3C beats the state-of-the-art result in 26 of 57 Atari games. This is a big improvement from previous reinforcement networks. When trained on the Atari domain using 16 CPU cores, the proposed asynchronous algorithm trains faster than the Deep Q-Network trains on a Nvidia K40 GPU, with A3C surpassing the state-of-the-art with half the training time. The A3C method is explained more in details in \Cref{sec:A3C}.
    
 \subsection{Deep Reinforcement Learning framework for Autonomous Driving} 
 The paper \cite{Sallab:2017:2470-1173:70} is motivated by the papers \cite{DBLP:journals/corr/MnihKSGAWR13} and \cite{Silver_2016}. It proposes a framework for autonomous driving using deep reinforcement learning. The paper was published in 2017. It is relevant because it is difficult to handle autonomous driving as a supervised learning problem due to interactions with the environment. It also integrates recent work on attention models, to focus on relevant information, thereby reducing the computational complexity.
@@ -43,8 +44,8 @@ The paper \cite{Sallab:2017:2470-1173:70} is motivated by the papers \cite{DBLP:
 They propose a framework for an end-to-end autonomous driving model that takes in raw sensor input and outputs the driving actions. The model can handle partially observable scenarios.  
 
 The framework can be seen on \Cref{fig:Framework_article}. In the model, the spatial features are extracted via a CNN, which learns the features from data. In order to decode the true environment state, an LSTM network is used, which can control what information to keep from previous the state. The final part of the framework is the reinforcement planning part. The inputs are the states of the environment and their aggregations over time. The output of the framework are the driving actions.  
- 
-The paper used The Open-source Racing Car Simulator (Torcs) with a lane keeping assist algorithm to test the framework. The result is a successful lane keeping behavior with speed limit.        
+
+The paper used The Open-source Racing Car Simulator (Torcs) with a lane keeping assist algorithm to test the framework. The result is a successful lane keeping behavior with the speed limit.       
 
 \begin{figure}[H]
 	\centering

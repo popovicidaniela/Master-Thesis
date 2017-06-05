@@ -22,7 +22,8 @@ Convolutional Neural Networks are like normal neural networks. They are made up 
 
 The problem about regular neural networks is that it doesn't scale well to full images. An example is the CIFAR-10 \cite{CIFAR_10}, where the images are only of the size 32x32x3 (32 wide, 32 high, 3 color channels). A single fully-connected neuron in the first hidden layer of a regular Neural Network would have $32\cdot32\cdot3 = 3072$ weights. For bigger sizes images, e.g. 200x200x3, it would lead to neurons that have $200\cdot200\cdot3 = 120000$ weights. This full connectivity is wasteful and the huge number of parameters would quickly lead to overfitting.
 
-Convolutional neural networks take advantage of the fact that the input consists of images. Unlike the way it is done in regular neural networks, the layers of a CNN have neurons arranged in 3 dimensions: width, height, depth. In example of the CIFAR-10 \cite{CIFAR_10} the input is a volume of activations, and the volume has the dimensions 32x32x3 (width, height, depth respectively). The neurons in a layer will only be connected to a small region of the previous layer, unlike the fully connected manner in regular NN. In order to visualize this difference, the \Cref{fig:feedforward} with the feedforward structure of an ANN can be compared with the figure \Cref{fig:NN_vs_CNN} provided below.
+Convolutional neural networks take advantage of the fact that the input consists of images. Unlike the way it is done in regular neural networks, the layers of a CNN have neurons arranged in 3 dimensions: width, height, depth. In the example of the CIFAR-10 \cite{CIFAR_10} the input is a volume of activations, and the volume has the dimensions 32x32x3 (width, height, depth respectively). The neurons in a layer will only be connected to a small region of the previous layer, unlike the fully connected manner in regular NN. In order to visualize this difference, the \Cref{fig:feedforward} with the feedforward structure of an ANN can be compared with the figure \Cref{fig:NN_vs_CNN} provided below.
+
 
 \begin{figure}[H]
 	\centering
@@ -32,12 +33,12 @@ Convolutional neural networks take advantage of the fact that the input consists
 \end{figure}
 
 \subsubsection{Layers}
-As described earlier a CNN is a combination of layers and every layer transforms one volume of activations into another through a differentiable function. CNN uses three main types of layers to build the architecture: Convolutional Layer, Pooling Layer, and Fully-Connected Layer (exactly as seen in regular Neural Networks on \Cref{fig:feedforward}). We will stack these layers to form a full CNN architecture. In reinforcement learning the pooling layer is not used, because they buy translation invariance - the network becomes insensitive to the location of an object in the image.
+As described earlier a CNN is a combination of layers and every layer transforms one volume of activations into another through a differentiable function. CNN uses three main types of layers to build the architecture: Convolutional Layer, Pooling Layer, and Fully-Connected Layer (exactly as seen in regular Neural Networks on \Cref{fig:feedforward}). We will stack these layers to form a full CNN architecture. In reinforcement learning the pooling, the layer is not used because they buy translation invariance - the network becomes insensitive to the location of an object in the image.
 
 \subsubsection{Convolutional Layer}
-The Convolutional layer is the main building block of a convolutional neural network. It does most of the computational heavy lifting. The convolutional layer consists of learnable filters. Every filter is spatially small (along width and height), but extends in the full depth of the input volume. An example of the first layer in a CNN is a filter with the size 5x5x3. During the first forward pass, the data is slid / convolved through each filter across the height and width of the input volume, and the dot products between the entries of the filter and the input at any position are computed. As the filter slides over the input volume it produces a 2-dimensional activation map. The activation map shows the responses of that filter at all spatial positions. The network will learn filters that activate when they see some type of visual feature - such as an edge of some orientation or a patch of some colors. On higher layers the network will learn to see more complex patterns: it could be honeycomb or wheel-like patterns. On each convolutional layer, there will be an entire set of filters, each layer will produce a separate 2-dimensional activation map. The activation maps will be stacked along the depth dimension and produce the output volume. 
+The Convolutional layer is the main building block of a convolutional neural network. It does most of the computational heavy lifting. The convolutional layer consists of learnable filters. Every filter is spatially small (along width and height), but extends to the full depth of the input volume. An example of the first layer in a CNN is a filter with the size 5x5x3. During the first forward pass, the data is slide/convolved through each filter across the height and width of the input volume, and the dot products between the entries of the filter and the input at any position are computed. As the filter slides over the input volume it produces a 2-dimensional activation map. The activation map shows the responses of that filter at all spatial positions. The network will learn filters that activate when they see some type of visual features - such as an edge of some orientation or a patch of some colors. On higher layers the network will learn to see more complex patterns: it could be honeycomb or wheel-like patterns. On each convolutional layer, there will be an entire set of filters, each layer will produce a separate 2-dimensional activation map. The activation maps will be stacked along the depth dimension and produce the output volume. 
 
-When dealing with high dimensional inputs like images, it is impractical to connect neurons to all the neurons in the previous volume. It is smart to connect each neuron to only a local region of the input volume instead. The spatial extent of this connectivity is a hyperparameter called the receptive field of the neuron - equivalently this is the filter size. An illustration of the receptive field can be seen on \Cref{fig:Respective_field}
+When dealing with high dimensional inputs like images, it is impractical to connect neurons to all the neurons in the previous volume. It is smart to connect each neuron to only a local region of the input volume instead. The spatial extent of this connectivity is a hyperparameter called the receptive field of the neuron - equivalently this is the filter size. An illustration of the receptive field can be seen on \Cref{fig:Respective_field}.
 
 \begin{figure}[H]
 	\centering
@@ -48,15 +49,16 @@ When dealing with high dimensional inputs like images, it is impractical to conn
 
 \textbf{Spatial arrangement}
 
-The connectivity of each neuron in the convolutional layer to the input volume is described by the spatial arrangement. Spatial arrangement describes how many neurons there are in the output volume and how they are arranged. Three hyperparameters control the size of the output volume - depth, stride and zero-padding.
+The connectivity of each neuron in the convolutional layer to the input volume is described by the spatial arrangement. Spatial arrangement describes how many neurons there are in the output volume and how they are arranged. Three hyperparameters control the size of the output volume - depth, stride, and zero-padding.
 
 The first hyperparameter is the depth. It corresponds to how many filters the convolutional layer uses. Each filter looks for something different in the input. For example, the convolutional layer takes a raw image as an input, then the different neurons along the depth dimension may activate in the presence of various oriented edges or blobs of colors. A set of neurons that look at the same region of the input is called \textit{depth column} or \textit{fibre}.
 
 Another hyperparameter is the stride. It defines how the filters slide over the input. If the stride is 1, then the filters move one pixel at a time. When the stride is 2, then the filters move 2 pixels at a time. This will produce spatially smaller output volumes.
 
-The last hyperparameter to control the size of the output volume is the size of zero-padding. Zero-padding pads the input volume with zeros around the border. The good feature of zero-padding is that it controls the spatial size of the output volumes. This is useful to preserve the spatial size of the input volume, so that the input and output width and height are the same. 
+The last hyperparameter to control the size of the output volume is the size of zero-padding. Zero-padding pads the input volume with zeros around the border. The good feature of zero-padding is that it controls the spatial size of the output volumes. This is useful to preserve the spatial size of the input volume so that the input and output width and height are the same. 
 
 The way to compute the spatial size of the output volume is by using a function of the input volume size ($\textbf{W}$), the receptive field size of the convolutional layer neurons ($\textbf{F}$), the stride with which they are applied ($\textbf{S}$), and the amount of zero padding used ($\textbf{P}$) on the border. The formula for calculating how many neurons "fit" is the following:
+
 \begin{equation}
 \frac{W-F+2P}{S}+1
 \end{equation}    
@@ -73,8 +75,9 @@ The visualization is provided on the figure below \Cref{fig:Spatial_size}:
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=1\textwidth]{Figures/Spatial_size.pdf}
-	\caption{Illustration of spatial arrangement. The example is described above. In this example, there is only one spatial dimension (x-axis), one neuron with a receptive field size of F = 3, the input size is W = 5, and there is zero-padding of P = 1. \textbf{Left:} The neuron strided across the input in stride of S = 1. \textbf{Right:} The neuron uses stride of S = 2.
-	The neuron weights are in this example [1,0,-1] (shown on very right), and its bias is zero. These weights are shared across all yellow neurons \cite{CNN_course}.
+	\caption{Illustration of spatial arrangement. The example is described above. In this example, there is only one spatial dimension (x-axis), one neuron with a receptive field size of F = 3, the input size is W = 5, and there is zero-padding of P = 1. \textbf{Left:} The neuron strides across the input in stride of S = 1. \textbf{Right:} The neuron uses stride of S = 2.
+		The neuron weights are in this example [1,0,-1] (shown on very right), and its bias is zero. These weights are shared across all yellow neurons
+		 \cite{CNN_course}.
 	}
 	\label{fig:Spatial_size}
 \end{figure} 
@@ -100,9 +103,9 @@ The convolutional layer:
 \end{itemize}
 
 \subsubsection{Fully connected Layer}
-The fully connected layer in CNNs is a traditional Multi-Layer Perceptron. The term “Fully Connected” implies that every neuron in the previous layer is connected to every neuron on the next layer as seen on \Cref{fig:feedforward}. The output from the convolutional layers represents a high-level feature of the input image. The purpose of the Fully Connected layer is to use these features for classifying the input images into various classes. 
+The fully connected layer in CNNs is a traditional Multi-Layer Perceptron. The term “Fully Connected” implies that every neuron in the previous layer is connected to every neuron in the next layer as seen on \Cref{fig:feedforward}. The output from the convolutional layers represents a high-level feature of the input image. The purpose of the Fully Connected layer is to use these features for classifying the input images into various classes. 
 
-Apart from classification the fully connected layer is also a cheap way to learn non-linear features. By combining these features, the classification of the network would be even better \cite{Fully_Connected_Layer}.
+Apart from classification, the fully connected layer is also a cheap way to learn non-linear features. By combining these features, the classification of the network would be even better \cite{Fully_Connected_Layer}. 
 
 \subsection{Recurrent Neural Networks (RNNs)} \label{RNN}
 Recurrent neural networks (RNN) are used when the patterns in data change with time. RNNs have a simple structure with a built-in feedback loop allowing it to act as a forecasting engine. RNNs are applied in a large range of applications, from speech recognition to driver-less cars. 
