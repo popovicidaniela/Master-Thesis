@@ -83,7 +83,7 @@ v_{\pi }(s)=\mathop{{}\mathbb{E}_{\pi}}\left [G_{t}|S_{t}=s \right ]=\sum_{a}\pi
 \end{equation}
 "It is really a sum over all values of the three variables, $a$, $s'$, and $r$. For each triple, we compute its probability, $\pi(a|s)p(s',r|s,a)$, weight the quantity in brackets by that probability, then sum over all possibilities to get an expected  value" \cite{Sutton}.
 
-In finite MDPs, an \textit{optimal policy} $\pi_{*}$ is the policy for which its expected return for all the states is greater than or equal to the expected return of all the other policies. There can be many optimal policies, but the evaluation of their optimal state-value functions have the same result. In other words, any optimal policy evaluates to the same \textit{optimal state-value function} $v_{*}$, which in presented in the following equation:
+In finite MDPs, an \textit{optimal policy} $\pi_{*}$ is the policy for which its expected return for all the states is greater than or equal to the expected return of all the other policies. There can be many optimal policies, but the evaluation of their optimal state-value functions have the same result. In other words, any optimal policy evaluates to the same \textit{optimal state-value function} $v_{*}$, which is presented in the following equation:
 \begin{equation}
 v_{*}(s)=\max_{\pi}v_{\pi}(s), \forall s\in S
 \end{equation}
